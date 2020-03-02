@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <h3>Articles</h3>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-danger">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if articles %}
+        {% for article in articles  %}
+            
+            <div class="row">
+
+                <div class = "col-md-10 offset-md-3">
+                 <div class="col-lg-8">
+            
+                <!-- Post Content Column -->
+               
+
+                    <!-- Title -->
+                    <a href="{% url 'article:detail' article.id %} "><h4 class="mt-4">{{article.title}}</h4></a> 
+                        <!--article/{{article.id}}-->
+                    <!-- Author -->
+                    <p class="lead">
+                    by
+                    <a href="#">{{ article.author.username }}</a>
+                    </p>
+
+                    <hr>
+
+                    <!-- Date/Time -->
+                    <p>Posted on {{ article.created_date }}</p>
+
+                    <hr>
+
+                    <!-- Preview Image -->
+                    {% if article.article_image %}
+                    <a href="{% url 'article:detail' article.id %}"><img class="img-fluid rounded" src="{{article.article_image.url}}" alt=""></a>
+                    <!--article/{{article.id}}-->
+                    {% else %}
+                    {% endif %}
+
+                    <hr>
+
+                    <!-- Post Content -->
+                    <p class="lead">
+                        {{ article.content|safe|truncatewords:20 }}</p>
+                    <a style="float : right;" href="{% url 'article:detail' article.id  %}" class="btn btn-danger">read more</a>
+                            <!-- "article/{{article.id}}"-->
+                </div>
+                </div>
+                </div>
+        {% endfor %}
+    {% else %}
+        <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <div class="alert alert-danger" style = "margin-top:30px;">No articles found!</div>
+            </div>
+        </div>
+    </div>
+
+        
+    {% endif %}
+{% endblock body %}

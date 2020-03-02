@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    {% if request.user.is_authenticated %}
+        <div class = "jumbotron text-center" style="margin-top: 60px;">
+            <h3>Main Page</h3>
+            <p>This is the Article app</p>
+        </div>
+        <ul>
+            {% for number in numeros %}
+                <li>{{number}}</li>
+            {% endfor %}
+        </ul>
+     {% else %}
+    {% endif %}
+{% endblock body %}

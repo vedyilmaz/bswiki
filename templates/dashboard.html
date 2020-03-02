@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div style="margin-top:20px;">
+        <h3>Dashboard</h3>
+        <hr>
+    </div>
+
+    <a class="btn btn-primary" href ="{% url 'article:addarticle' %}">Add Article</a>
+    <!--/articles/addarticle-->
+
+    <div class="row">
+            <div class="col-lg-10">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" id="input_search" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+    {% if not articles %}
+        <div class="alert alert-danger" style = "margin-top:20px;">There is no article yet.</div>
+    {% else %}
+        <table class="table table-hover" style="margin-top:20px;">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Author</th>
+                    <th scope="col">Created Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles  %}
+                    <tr>
+                        <th scope="row">{{ article.id }}</th>
+                        <td><a href="{% url 'article:detail' article.id %}">{{ article.title }}</a></td> 
+                                    <!--/articles/article/{{ article.id }}-->
+                        <td>{{ article.author.username }}</td>
+                        <td>{{ article.created_date }}</td>
+                        <td><a href="{% url 'article:update' article.id %}" class="btn btn-danger">Update</a></td>
+                                    <!--/articles/update/{{ article.id }}-->
+                        <td><a href="{% url 'article:delete' article.id %}" class="btn btn-danger">Delete</a></td>
+                    </tr>
+                {% endfor %}    
+                
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock body %}
