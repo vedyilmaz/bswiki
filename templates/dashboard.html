@@ -13,7 +13,7 @@
                 <div align="right">
                     <form>
                         {% csrf_token %}
-                        <input type="text" id="input_search" name = "keyword" class="input" placeholder="Search">
+                        <input type="text" id="input_search" name = "keyword" class="input col-12" placeholder="Enter keyword">
                         <button type="submit" class="btn btn-primary">Search</button>
                     </form>
                 </div>
@@ -40,9 +40,9 @@
                                     <!--/articles/article/{{ article.id }}-->
                         <td>{{ article.author.username }}</td>
                         <td>{{ article.created_date }}</td>
-                        <td><a href="{% url 'article:update' article.id %}" class="btn btn-danger">Update</a></td>
+                        <td><a href="{% url 'article:update' article.id %}">Update</a></td>
                                     <!--/articles/update/{{ article.id }}-->
-                        <td><a href="{% url 'article:delete' article.id %}" class="btn btn-danger">Delete</a></td>
+                        <td><a href="{% url 'article:delete' article.id %}">Delete</a></td>
                     </tr>
                 {% endfor %}    
                 

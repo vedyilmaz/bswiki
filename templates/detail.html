@@ -36,10 +36,10 @@
         <p class="lead">
             {{ article.content|safe }}
         </p>
+
         <hr>
         <h4>Comments</h4>
         <hr>  
-        {% if comments %}
           {% for comment in comments  %}
             <div class="media mb-4">
               <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
@@ -50,13 +50,13 @@
                   {{ comment.comment_content }}    
                 </div>
             </div>
-          
+
+            {% empty %}
+              <div class = "alert alert-danger">
+                There is no comments for this article.
+              </div>
           {% endfor %}
-        {% else %}
-          <div class = "alert alert-danger">
-            There is no comments for this article.
-          </div>
-        {% endif %}
+
         <!-- Comments Form -->
         <div class="card my-4">
           <h5 class="card-header">Leave a Comment:</h5>
@@ -79,4 +79,5 @@
     
   </div>  <!-- /.row -->
 
+        <a href="{% url 'index' %}">Back to Main</a>
 {% endblock body %}

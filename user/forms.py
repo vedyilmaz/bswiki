@@ -1,5 +1,6 @@
 from django import forms
 
+
 class RegisterForm(forms.Form):
     username = forms.CharField(label = "Username", min_length=4, max_length=50)
     password = forms.CharField(label = "Password", min_length=6, widget=forms.PasswordInput)
@@ -19,6 +20,8 @@ class RegisterForm(forms.Form):
         }
         return values
 
+
 class LoginForm(forms.Form):
     username = forms.CharField(label = "Username")
     password = forms.CharField(label = "Password", widget=forms.PasswordInput)
+    

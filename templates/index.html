@@ -3,14 +3,22 @@
 
     {% if request.user.is_authenticated %}
         <div class = "jumbotron text-center" style="margin-top: 60px;">
-            <h3>Main Page</h3>
-            <p>This is the Article app</p>
+            <h3>You can add your articles or files.</h3>
+            <p>Verba volent scripta manent.</p>
         </div>
-        <ul>
-            {% for number in numeros %}
-                <li>{{number}}</li>
-            {% endfor %}
-        </ul>
+
+        <div class="row">
+            <div class="col-lg-10">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" id="input_search" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
      {% else %}
     {% endif %}
 {% endblock body %}

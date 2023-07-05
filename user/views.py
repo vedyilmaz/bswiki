@@ -1,4 +1,6 @@
 from django.shortcuts import render,redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from .forms import RegisterForm,LoginForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login,authenticate,logout
@@ -41,7 +43,8 @@ def loginUser(request):
         else:
             messages.success(request, "Successfully authenticated.")
             login(request,user)
-            return redirect("index")
+            #return redirect("index")
+            return HttpResponseRedirect(reverse('index'))
     else:
         return render(request,"login.html", context)
 

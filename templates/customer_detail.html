@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+  <div class="row">
+
+    <!-- Post Content Column -->
+    <div class="col-lg-8">
+
+        <!-- Title -->
+        <h3 class="mt-4">{{customer.company}}</h3>
+
+        <!-- Preview Image -->
+        {% if customer.company_logo %}
+          <img class="img-fluid rounded" src="{{customer.company_logo.url}}" alt="">
+        {% else %}
+        {% endif %}
+
+        <hr>
+
+        <!-- Post Content -->
+        <p class="lead">
+            {{ customer.company|safe }}
+        </p>
+
+        <hr>
+    </div> <!--post content form-->
+    
+  </div>  <!-- /.row -->
+
+        <a href="{% url 'index' %}">Back to Main</a>
+{% endblock body %}
