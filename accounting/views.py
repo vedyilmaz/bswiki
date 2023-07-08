@@ -13,18 +13,18 @@ def customers(request):
     keyword = request.GET.get("keyword")
     if keyword:
         all_customers = Customer.objects.filter(company__contains=keyword)
-        return render(request, "customers.html", {"all_customers": all_customers})
+        return render(request, "accounting/customers.html", {"all_customers": all_customers})
 
     all_customers = Customer.objects.all()
 
-    return render(request, "customers.html", {"all_customers": all_customers})
+    return render(request, "accounting/customer/customers.html", {"all_customers": all_customers})
 
 
 @login_required(login_url="user:login")
 def customer_detail(request, id):
     customer = get_object_or_404(Customer, id=id)
 
-    return render(request, "customer_detail.html", {"customer_detail": customer})
+    return render(request, "accounting/customer/customer_detail.html", {"customer_detail": customer})
 
 
 @login_required(login_url="user:login")
@@ -42,7 +42,7 @@ def add_customer(request):
         context = {
             "form": form
         }
-        return render(request, "addcustomer.html", context)
+        return render(request, "accounting/customer/addcustomer.html", context)
 
 
 @login_required(login_url="user:login")
@@ -56,7 +56,7 @@ def update_customer(request, id):
         messages.success(request, "Customer has been successfully updated.")
         return redirect("accounting:customers")
 
-    return render(request, "customer_update.html", {"form": form})
+    return render(request, "accounting/customer/customer_update.html", {"form": form})
 
 
 @login_required(login_url="user:login")
@@ -82,7 +82,7 @@ def add_bank_account(request):
         context = {
             "form": form
         }
-        return render(request, "add_bank_account.html", context)
+        return render(request, "accounting/bank_account/add_bank_account.html", context)
 
 
 @login_required(login_url="user:login")
@@ -90,18 +90,18 @@ def bank_accounts(request):
     keyword = request.GET.get("keyword")
     if keyword:
         all_bank_accounts = BankAccount.objects.filter(account_alias__contains=keyword)
-        return render(request, "bank_accounts.html", {"bank_accounts": all_bank_accounts})
+        return render(request, "accounting/bank_account/bank_accounts.html", {"bank_accounts": all_bank_accounts})
 
     all_bank_accounts = BankAccount.objects.all()
 
-    return render(request, "bank_accounts.html", {"bank_accounts": all_bank_accounts})
+    return render(request, "accounting/bank_account/bank_accounts.html", {"bank_accounts": all_bank_accounts})
 
 
 @login_required(login_url="user:login")
 def bank_account_detail(request, id):
     bank_account = get_object_or_404(BankAccount, id=id)
 
-    return render(request, "bank_account_detail.html", {"bank_account_detail": bank_account})
+    return render(request, "accounting/bank_account/bank_account_detail.html", {"bank_account_detail": bank_account})
 
 
 @login_required(login_url="user:login")
@@ -114,7 +114,7 @@ def update_bank_account(request, id):
         messages.success(request, "Bank account has been successfully updated.")
         return redirect("accounting:bank_accounts")
 
-    return render(request, "bank_account_update.html", {"form": form})
+    return render(request, "accounting/bank_account/bank_account_update.html", {"form": form})
 
 
 @login_required(login_url="user:login")
@@ -142,7 +142,7 @@ def add_contract(request):
         context = {
             "form": form
         }
-        return render(request, "add_contract.html", context)
+        return render(request, "accounting/contract/add_contract.html", context)
 
 
 @login_required(login_url="user:login")
@@ -150,18 +150,18 @@ def contracts(request):
     keyword = request.GET.get("keyword")
     if keyword:
         all_contracts = Contract.objects.filter(description__contains=keyword)
-        return render(request, "contracts.html", {"contracts": all_contracts})
+        return render(request, "accounting/contract/contracts.html", {"contracts": all_contracts})
 
     all_contracts = Contract.objects.all()
 
-    return render(request, "contracts.html", {"contracts": all_contracts})
+    return render(request, "accounting/contract/contracts.html", {"contracts": all_contracts})
 
 
 @login_required(login_url="user:login")
 def contract_detail(request, id):
     contract = get_object_or_404(Contract, id=id)
 
-    return render(request, "contract_detail.html", {"contract_detail": contract})
+    return render(request, "accounting/contract/contract_detail.html", {"contract_detail": contract})
 
 
 @login_required(login_url="user:login")
@@ -174,7 +174,7 @@ def update_contract(request, id):
         messages.success(request, "Contract has been successfully updated.")
         return redirect("accounting:contracts")
 
-    return render(request, "contract_update.html", {"form": form})
+    return render(request, "accounting/contract/contract_update.html", {"form": form})
 
 
 @login_required(login_url="user:login")

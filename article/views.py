@@ -35,13 +35,13 @@ def dashboard(request):
     keyword = request.GET.get("keyword")
     if keyword:
         articles = Article.objects.filter(title__contains=keyword)
-        return render(request, "dashboard.html", {"articles": articles})
+        return render(request, "article/dashboard.html", {"articles": articles})
 
     articles = Article.objects.filter(author = request.user)
     context = {
         "articles": articles
     }
-    return render(request, "dashboard.html", context)
+    return render(request, "article/dashboard.html", context)
 
 
 @login_required(login_url="user:login")
@@ -58,7 +58,7 @@ def addArticle(request):
         context = {
             "form": form
         }
-        return render(request, "addarticle.html", context)
+        return render(request, "article/addarticle.html", context)
 
 
 @login_required(login_url="user:login")
@@ -67,7 +67,7 @@ def detail(request, id):
     article = get_object_or_404(Article, id=id)
     comments = article.comments.all()
 
-    return render(request, "detail.html", {"article": article, "comments": comments})
+    return render(request, "article/detail.html", {"article": article, "comments": comments})
 
 
 @login_required(login_url="user:login")
@@ -82,7 +82,7 @@ def articleUpdate(request, id):
         messages.success(request, "Article has been successfully updated.")
         return redirect("article:dashboard")
     
-    return render(request, "update.html", {"form":form})
+    return render(request, "article/update.html", {"form": form})
 
 
 @login_required(login_url="user:login")
@@ -98,11 +98,11 @@ def articles(request):
     keyword = request.GET.get("keyword")
     if keyword:
         articles = Article.objects.filter(title__contains=keyword)
-        return render(request, "articles.html", {"articles": articles})
+        return render(request, "article/articles.html", {"articles": articles})
 
     articles = Article.objects.all()
 
-    return render(request, "articles.html", {"articles": articles})
+    return render(request, "article/articles.html", {"articles": articles})
 
 
 @login_required(login_url="user:login")
@@ -112,7 +112,7 @@ def addComment(request, id):
     if request.method == "POST":
         comment_author = request.POST.get("comment_author")
         comment_content = request.POST.get("comment_content")
-        newComment = Comment(comment_author = comment_author, comment_content = comment_content)
+        newComment = Comment(comment_author=comment_author, comment_content=comment_content)
         newComment.article = article
         newComment.save()
         messages.success(request, "Comment successfully added.")
