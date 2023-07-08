@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <h3>Contracts</h3>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+     <a class="btn btn-primary" href ="{% url 'accounting:add_contract' %}">Add Contract</a>
+
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-danger">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not contracts %}
+        <div class="alert alert-danger" style = "margin-top:20px;">There is no contract yet.</div>
+    {% else %}
+        <table class="table table-hover" style="margin-top:20px;">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Contract</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">Rate Type</th>
+                    <th scope="col">Rate Amount</th>
+                    <th scope="col">Currency</th>
+                    <th scope="col">Billing Period</th>
+                    <th scope="col">Contract Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts  %}
+                    <tr>
+                        <th scope="row">{{ contract.id }}</th>
+                        <td><a href="{% url 'accounting:contract_detail' contract.id %}">{{ contract.contract_alias }}</a></td>
+                                    <!--/articles/article/{{ article.id }}-->
+                        <td>{{ contract.customer_id }}</td>
+                        <td>{{ contract.start_date }}</td>
+                        <td>{{ contract.rate_type }}</td>
+                        <td>{{ contract.rate_amount }}</td>
+                        <td>{{ contract.currency }}</td>
+                        <td>{{ contract.billing_period }}</td>
+                        <td>{{ contract.is_active }}</td>
+                        <td><a href="{% url 'accounting:update_contract' contract.id %}">Update</a></td>
+                                    <!--/articles/update/{{ article.id }}-->
+                        <td><a href="{% url 'accounting:delete_contract' contract.id %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        
+    {% endif %}
+{% endblock body %}

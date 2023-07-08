@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+  <div class="row">
+
+    <!-- Post Content Column -->
+    <div class="col-lg-8">
+
+        <!-- Contract Alias -->
+        <h3 class="mt-4">{{ contract_detail.contract_alias }}</h3>
+        <hr>
+        <!-- Post Content -->
+        <p class="lead">
+            <b>Customer:</b> {{ contract_detail.customer_id|safe }}
+        </p>
+        <p class="lead">
+            <b>Start Date:</b> {{ contract_detail.start_date|safe }}
+        </p>
+        <p class="lead">
+            <b>End Date:</b> {{ contract_detail.end_date|safe }}
+        </p>
+        <p class="lead">
+            <b>Rate Type:</b> {{ contract_detail.rate_type|safe }}
+        </p>
+        <p class="lead">
+            <b>Rate Amount:</b> {{ contract_detail.rate_amount|safe }}
+        </p>
+        <p class="lead">
+            <b>Currency:</b> {{ contract_detail.currency|safe }}
+        </p>
+        <p class="lead">
+            <b>Billing Period:</b> {{ contract_detail.billing_period|safe }}
+        </p>
+        <p class="lead">
+            <b>Description:</b> {{ contract_detail.description|safe }}
+        </p>
+
+
+    </div> <!--post content form-->
+    
+  </div>  <!-- /.row -->
+
+        <a href="{% url 'accounting:contracts' %}">Return</a>
+{% endblock body %}

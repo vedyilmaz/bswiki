@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+  <div class="row">
+
+    <!-- Post Content Column -->
+    <div class="col-lg-8">
+
+        <!-- Title -->
+        <h3 class="mt-4">{{bank_account_detail.account_alias}}</h3>
+
+        <hr>
+
+        <!-- Post Content -->
+         <p class="lead">
+            <b>Bank:</b> {{ bank_account_detail.bank|safe }}
+        </p>
+        <p class="lead">
+            <b>Account Type:</b> {{ bank_account_detail.account_type|safe }}
+        </p>
+        <p class="lead">
+            <b>Account No:</b> {{ bank_account_detail.account_no|safe }}
+        </p>
+        <p class="lead">
+            <b>Sort Code:</b> {{ bank_account_detail.sort_code|safe }}
+        </p>
+        <p class="lead">
+            <b>Account Owner:</b> {{ bank_account_detail.account_owner|safe }}
+        </p>
+        <p class="lead">
+            <b>Currency:</b> {{ bank_account_detail.currency|safe }}
+        </p>
+
+    </div> <!--post content form-->
+    
+  </div>  <!-- /.row -->
+
+        <a href="{% url 'accounting:bank_accounts' %}">Return</a>
+{% endblock body %}

@@ -8,25 +8,32 @@
     <div class="col-lg-8">
 
         <!-- Title -->
-        <h3 class="mt-4">{{customer.company}}</h3>
-
+        <h3 class="mt-4">{{customer_detail.company}}</h3>
+        <hr>
+        <p class="lead">
+            <b>Address:</b> {{ customer_detail.address|safe }}
+        </p>
+        <p class="lead">
+            <b>Web:</b> {{ customer_detail.web|safe }}
+        </p>
+        <p class="lead">
+            <b>Email:</b> {{ customer_detail.email|safe }}
+        </p>
+        <p class="lead">
+            <b>Responsible:</b> {{ customer_detail.responsible|safe }}
+        </p>
+        <p class="lead">
+            <b>Note:</b> {{ customer_detail.note|safe }}
+        </p>
         <!-- Preview Image -->
-        {% if customer.company_logo %}
-          <img class="img-fluid rounded" src="{{customer.company_logo.url}}" alt="">
+        {% if customer_detail.company_logo %}
+          <img class="img-fluid rounded" src="{{customer_detail.company_logo.url}}" alt="">
         {% else %}
         {% endif %}
 
-        <hr>
-
-        <!-- Post Content -->
-        <p class="lead">
-            {{ customer.company|safe }}
-        </p>
-
-        <hr>
     </div> <!--post content form-->
     
   </div>  <!-- /.row -->
-
-        <a href="{% url 'index' %}">Back to Main</a>
+        <br>
+        <a href="{% url 'accounting:customers' %}">Return</a>
 {% endblock body %}

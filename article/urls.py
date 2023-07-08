@@ -10,6 +10,6 @@ urlpatterns = [
     path('article/<int:id>', views.detail, name="detail"),
     path('update/<int:id>', views.articleUpdate, name="update"),
     path('delete/<int:id>', views.deleteArticle, name='delete'),
-    path('', views.articles, name='articles'),
+    # path('', views.articles, name='articles'),
     path('comment/<int:id>', views.addComment, name='comment')
 ]

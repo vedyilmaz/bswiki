@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <h3>Bank Accounts</h3>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+     <a class="btn btn-primary" href ="{% url 'accounting:add_bank_account' %}">Add Bank Account</a>
+
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-danger">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not bank_accounts %}
+        <div class="alert alert-danger" style = "margin-top:20px;">There is no bank account yet.</div>
+    {% else %}
+        <table class="table table-hover" style="margin-top:20px;">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Bank</th>
+                    <th scope="col">Account Alias</th>
+                    <th scope="col">Account Type</th>
+                    <th scope="col">Account No</th>
+                    <th scope="col">Sort Code</th>
+                    <th scope="col">Account Owner</th>
+                    <th scope="col">Currency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in bank_accounts  %}
+                    <tr>
+                        <th scope="row">{{ account.id }}</th>
+                        <td><a href="{% url 'accounting:bank_account_detail' account.id %}">{{ account.bank }}</a></td>
+                                    <!--/articles/article/{{ article.id }}-->
+                        <td>{{ account.account_alias }}</td>
+                        <td>{{ account.account_type }}</td>
+                        <td>{{ account.account_no }}</td>
+                        <td>{{ account.sort_code }}</td>
+                        <td>{{ account.account_owner }}</td>
+                        <td>{{ account.currency }}</td>
+                        <td><a href="{% url 'accounting:update_bank_account' account.id %}">Update</a></td>
+                                    <!--/articles/update/{{ article.id }}-->
+                        <td><a href="{% url 'accounting:delete_bank_account' account.id %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        
+    {% endif %}
+{% endblock body %}

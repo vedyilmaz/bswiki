@@ -8,11 +8,7 @@
           <ul class="navbar-nav mr-auto">
 
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'article:dashboard' %}">Dashboard</a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'article:articles' %}">Articles</a>
+              <a class="nav-link" href="{% url 'article:dashboard' %}">Articles</a>
             </li>
 
               <li class="nav-item dropdown">
@@ -21,9 +17,9 @@
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <a class="dropdown-item" href="{% url 'accounting:customers' %}">Customers</a>
-                  <a class="dropdown-item" href="#">Contracts</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Bank Accounts</a>
+                  <a class="dropdown-item" href="{% url 'accounting:contracts' %}">Contracts</a>
+                  <a class="dropdown-item" href="{% url 'accounting:bank_accounts' %}">Bank Accounts</a>
+                    <div class="dropdown-divider"></div>
                 </div>
             </li>
 
