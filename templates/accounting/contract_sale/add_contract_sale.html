@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block body %}
+{% load crispy_forms_tags %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    function sendSelectedValue() {
+        var selectedValue = document.getElementById("id_contract").value;
+        var workedHours = document.getElementById("id_worked_hours").value;
+        console.log(selectedValue)
+        const request = new XMLHttpRequest();
+        request.open('POST', "{% url 'accounting:selected_contract_id' %}");
+
+        // Include csrf token in header so Django will accept the request
+        const header =  "X-CSRFToken";
+        const token = getCookie('csrftoken'); //Using the js-cookies library
+        request.setRequestHeader(header, token);
+        const data = new FormData();
+        data.append('cs_id', selectedValue);
+        data.append('worked_hours', workedHours);
+        request.send(data);
+        console.log("Request sent");
+    }
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+    return cookieValue;
+    }
+
+  $(document).ready(function() {
+    $('#id_contract').change(function() {
+       sendSelectedValue();
+    });
+  });
+
+    $(document).ready(function() {
+    $('#id_worked_hours').change(function() {
+       sendSelectedValue();
+    });
+  });
+</script>
+
+    <div class="row">
+    <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
+        <h3>Add Contract Sale</h3>
+        <hr>
+        <form method = "POST">
+            {% csrf_token %}
+            {{form.media}}
+            {{form|crispy}}
+            <br>
+            <button type="submit" class="btn btn-primary">Add Contract Sale</button>
+        </form>
+    </div>
+    </div>
+{% endblock body %}
+{% load static %}
+

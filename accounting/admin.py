@@ -8,6 +8,7 @@ class CustomersAdmin(admin.ModelAdmin):
     list_display_links = ["company", "created_date"]
     search_fields = ["company"]
     list_filter = ["created_date"]
+    list_per_page = 25
 
     class Meta:
         model = Customer
@@ -19,8 +20,9 @@ class BankAccountsAdmin(admin.ModelAdmin):
                     "currency", "note"]
 
     list_display_links = ["bank", "account_alias"]
-    search_fields = ["bank"]
-    list_filter = ["bank"]
+    search_fields = ["bank", "account_alias"]
+    list_filter = ["bank", "account_type", "currency"]
+    list_per_page = 25
 
     class Meta:
         model = BankAccount
@@ -28,11 +30,25 @@ class BankAccountsAdmin(admin.ModelAdmin):
 
 @admin.register(Contract)
 class ContractsAdmin(admin.ModelAdmin):
-    list_display = ["contract_alias", "customer_id", "start_date", "end_date", "rate_type",
+    list_display = ["contract_alias", "customer", "start_date", "end_date", "rate_type",
                     "rate_amount", "currency", "billing_period", "is_active", "description"]
-    list_display_links = ["contract_alias", "customer_id"]
+    list_display_links = ["contract_alias", "customer"]
     search_fields = ["contract_alias"]
     list_filter = ["contract_alias"]
+    list_editable = ["is_active"]
+    list_per_page = 25
 
     class Meta:
         model = Contract
+
+
+@admin.register(ContractSale)
+class ContractSalesAdmin(admin.ModelAdmin):
+    list_display = ["contract", "date", "worked_hours", "total_amount"]
+    list_display_links = ["contract", "date", "worked_hours", "total_amount"]
+    search_fields = ["contract"]
+    list_filter = ["contract"]
+    list_per_page = 25
+
+    class Meta:
+        model = ContractSale

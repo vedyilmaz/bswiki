@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     "accounting",
     "article",
     "user",
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'ckeditor',
     'django_cleanup.apps.CleanupConfig',
+    'mathfilters',
 ]
 
 MIDDLEWARE = [

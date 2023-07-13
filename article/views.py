@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from article.forms import ArticleForm
 from article.models import Article, Comment
 from django.contrib import messages
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 
 # Create your views here.
@@ -34,10 +35,16 @@ def detail(request, id):
 def dashboard(request):
     keyword = request.GET.get("keyword")
     if keyword:
-        articles = Article.objects.filter(title__contains=keyword)
-        return render(request, "article/dashboard.html", {"articles": articles})
+        filtered_articles = Article.objects.filter(title__contains=keyword)
+        paginator = Paginator(filtered_articles, 10)
+        page = request.GET.get('page')
+        paged_articles = paginator.get_page(page)
+        return render(request, "article/dashboard.html", {"articles": paged_articles})
 
-    articles = Article.objects.filter(author = request.user)
+    articles = Article.objects.filter(author=request.user)
+    paginator = Paginator(articles, 10)
+    page = request.GET.get('page')
+    articles = paginator.get_page(page)
     context = {
         "articles": articles
     }

@@ -24,5 +24,13 @@ urlpatterns = [
     path('contract/<int:id>', views.contract_detail, name='contract_detail'),
     path('add_contract', views.add_contract, name='add_contract'),
     path('update_contract/<int:id>', views.update_contract, name='update_contract'),
-    path('delete_contract/<int:contract_id>', views.delete_contract, name='delete_contract')
+    path('delete_contract/<int:contract_id>', views.delete_contract, name='delete_contract'),
+
+    # contract sales
+    path('contract_sales', views.contract_sales, name='contract_sales'),
+    path('add_contract_sale', views.add_contract_sale, name='add_contract_sale'),
+    path('contract_sale_detail/<int:id>', views.contract_sale_detail, name='contract_sale_detail'),
+    path('update_contract_sale/<int:id>', views.update_contract_sale, name='update_contract_sale'),
+    path('delete_contract_sale/<int:id>', views.delete_contract_sale, name='delete_contract_sale'),
+    path('selected_contract_id/', views.selected_contract_id, name='selected_contract_id')
 ]

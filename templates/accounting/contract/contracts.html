@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-
+{% load humanize %}
 {% block body %}
     
     <div class="row">
@@ -50,10 +50,10 @@
                         <th scope="row">{{ contract.id }}</th>
                         <td><a href="{% url 'accounting:contract_detail' contract.id %}">{{ contract.contract_alias }}</a></td>
                                     <!--/articles/article/{{ article.id }}-->
-                        <td>{{ contract.customer_id }}</td>
+                        <td>{{ contract.customer }}</td>
                         <td>{{ contract.start_date }}</td>
                         <td>{{ contract.rate_type }}</td>
-                        <td>{{ contract.rate_amount }}</td>
+                        <td>{{ contract.rate_amount | intcomma }}</td>
                         <td>{{ contract.currency }}</td>
                         <td>{{ contract.billing_period }}</td>
                         <td>{{ contract.is_active }}</td>

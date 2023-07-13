@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% block body %}
+    
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <h3>Contract Sales</h3>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+     <a class="btn btn-primary" href ="{% url 'accounting:add_contract_sale' %}">Add Contract Sale</a>
+
+    <div class="row">
+        <div class = "col-md-10 offset-md-3">
+            <div class="col-lg-8">
+                <div align="right">
+                    <form>
+                        {% csrf_token %}
+                        <input type="text" name = "keyword" class="input" placeholder="Search">
+                        <button type="submit" class="btn btn-danger">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not contract_sales %}
+        <div class="alert alert-danger" style = "margin-top:20px;">There is no contract sale yet.</div>
+    {% else %}
+        <table class="table table-hover" style="margin-top:20px;">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Contract Alias</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Worked Hours</th>
+                    <th scope="col">Total Amount</th>
+                    <th scope="col">Rate Amount</th>
+                    <th scope="col">Currency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cs in contract_sales  %}
+                    <tr>
+                        <th scope="row">{{ cs.id }}</th>
+                        <td><a href="{% url 'accounting:contract_sale_detail' cs.id %}">{{ cs.contract__contract_alias }}</a></td>
+                                    <!--/articles/article/{{ article.id }}-->
+                        <td>{{ cs.date }}</td>
+                        <td>{{ cs.worked_hours }}</td>
+                        <td>{{ cs.worked_hours|mul:cs.contract__rate_amount }}</td>
+                        <td>{{ cs.contract__rate_amount }}</td>
+                        <td>{{ cs.contract__currency }}</td>
+                        <td><a href="{% url 'accounting:update_contract_sale' cs.id %}">Update</a></td>
+                        <td><a href="{% url 'accounting:delete_contract_sale' cs.id %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        
+    {% endif %}
+{% endblock body %}
