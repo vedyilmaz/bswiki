@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, BankAccount, Contract, ContractSale
+from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice
 
 
 @admin.register(Customer)
@@ -52,3 +52,15 @@ class ContractSalesAdmin(admin.ModelAdmin):
 
     class Meta:
         model = ContractSale
+
+
+@admin.register(ContractSalesInvoice)
+class ContractSalesInvoiceAdmin(admin.ModelAdmin):
+    list_display = ["sales", "invoice_number", "date", "due_date", "is_paid_off", "invoice_file"]
+    list_display_links = ["sales", "invoice_number", "date"]
+    search_fields = ["invoice_number"]
+    list_filter = ["sales"]
+    list_per_page = 25
+
+    class Meta:
+        model = ContractSalesInvoice

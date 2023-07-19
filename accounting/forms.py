@@ -1,5 +1,5 @@
-from django.forms import ModelForm, SelectDateWidget
-from .models import Customer, BankAccount, Contract, ContractSale
+from django.forms import ModelForm, SelectDateWidget, ClearableFileInput
+from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice, ContractSalesTransaction
 from .widgets import DatePickerInput, TimePickerInput, DateTimePickerInput
 from django import forms
 from .widgets import DatePickerInput, TimePickerInput, DateTimePickerInput, CheckBoxInput, RadioSelectInput
@@ -35,9 +35,6 @@ class ContractForm(ModelForm):
                       ("project_based", "Project Based")]
 
         BILLING_PERIODS = [("weekly", "Weekly"), ("monthly", "Monthly"), ("milestone", "Milestone")]
-        # start_field = forms.DateField(widget=DatePickerInput)
-        # end_field = forms.DateField(widget=DatePickerInput)
-        # is_active = forms.BooleanField(widget=forms.CheckboxInput)
 
         fields = ['customer', 'contract_alias', 'start_date', 'end_date', 'rate_type', 'rate_amount', 'currency',
                   'billing_period', 'is_active', 'description']
@@ -52,18 +49,12 @@ class ContractForm(ModelForm):
 
 
 class ContractSaleForm(ModelForm):
-    rate_amount = forms.DecimalField(disabled=True, required=False)
+    rate_amount = forms.DecimalField(disabled=False, required=False)
 
     class Meta:
         model = ContractSale
 
-        # contract = models.ForeignKey("accounting.Contract", on_delete=models.SET_DEFAULT, default=None, null=True)
-        # date = models.DateField(help_text='date')
-        # worked_hours = models.FloatField()
-        # amount = models.FloatField()
-        # note = models.TextField(blank=True)
-
-        fields = ['contract', 'date', 'worked_hours', 'rate_amount', 'total_amount', 'note']
+        fields = ['contract', 'date', 'worked_hours', 'rate_amount', 'total_amount', 'is_invoiced', 'note']
 
         widgets = {
             'date': DatePickerInput(),
@@ -75,3 +66,45 @@ class ContractSaleForm(ModelForm):
     #     if self.instance.contract:
     #         self.fields['total_amount'].initial = self.instance.contract.rate_amount
 
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.fields['rate_amount'].queryset = Contract.objects.none()
+    #
+    #     if 'contract' in self.data:
+    #         try:
+    #             contract_id = int(self.data.get('contract__id'))
+    #             self.fields['rate_amount'].queryset = Contract.objects.filter(id=contract_id)
+    #         except (ValueError, TypeError):
+    #             pass  # invalid input from the client; ignore and fallback to empty City queryset
+    #
+    #     elif self.instance.pk:
+    #         self.fields['rate_amount'].queryset = self.instance.contract.contract_set
+    #
+    #     else:
+    #         print("empty data!")
+
+
+class ContractSaleInvoiceForm(ModelForm):
+
+    class Meta:
+        model = ContractSalesInvoice
+
+        fields = ['sales', 'invoice_number', 'date', 'due_date', 'is_paid_off', 'invoice_file', 'note']
+
+        widgets = {
+            'date': DatePickerInput(),
+            'due_date': DatePickerInput(),
+            'is_paid_off': CheckBoxInput(),
+        }
+
+
+class ContractSaleTransactForm(ModelForm):
+
+    class Meta:
+        model = ContractSalesTransaction
+
+        fields = ['invoice', 'date', 'amount', 'bank_account', 'note']
+
+        widgets = {
+            'date': DatePickerInput(),
+        }

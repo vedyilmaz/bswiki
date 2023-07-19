@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    
+  <div class="row">
+
+    <!-- Post Content Column -->
+    <div class="col-lg-8">
+
+        <!-- Contract Alias -->
+        <h4 class="mt-4">{{ cont_sales_transaction.invoice__sales__contract__contract_alias }}</h4>
+        <hr>
+        <!-- Post Content -->
+        <p class="lead">
+            <b>Invoice Number:</b> {{ cont_sales_transaction.invoice__invoice_number|safe }}
+        </p>
+        <p class="lead">
+            <b>Date:</b> {{ cont_sales_transaction.date|safe }}
+        </p>
+        <p class="lead">
+            <b>Currency:</b> {{ cont_sales_transaction.invoice__sales__contract__currency|safe }}
+        </p>
+        <p class="lead">
+            <b>Total Amount:</b> {{ cont_sales_transaction.invoice__sales__total_amount|safe }}
+        </p>
+        <p class="lead">
+            <b>Note:</b> {{ cont_sales_transaction.note|safe }}
+        </p>
+
+
+    </div> <!--post content form-->
+    
+  </div>  <!-- /.row -->
+
+        <a href="{% url 'accounting:cont_sales_transactions' %}">Return</a>
+{% endblock body %}

@@ -1,61 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
 {% load crispy_forms_tags %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<script>
-    function sendSelectedValue() {
-        var selectedValue = document.getElementById("id_contract").value;
-        var workedHours = document.getElementById("id_worked_hours").value;
-        console.log(selectedValue)
-        const request = new XMLHttpRequest();
-        request.open('POST', "{% url 'accounting:selected_contract_id' %}");
-
-        // Include csrf token in header so Django will accept the request
-        const header =  "X-CSRFToken";
-        const token = getCookie('csrftoken'); //Using the js-cookies library
-        request.setRequestHeader(header, token);
-        const data = new FormData();
-        data.append('cs_id', selectedValue);
-        data.append('worked_hours', workedHours);
-        request.send(data);
-        console.log("Request sent");
-    }
-
-    function getCookie(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-    return cookieValue;
-    }
-
-  $(document).ready(function() {
-    $('#id_contract').change(function() {
-       sendSelectedValue();
-    });
-  });
-
-    $(document).ready(function() {
-    $('#id_worked_hours').change(function() {
-       sendSelectedValue();
-    });
-  });
-</script>
 
     <div class="row">
     <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
         <h3>Add Contract Sale</h3>
         <hr>
-        <form method = "POST">
+<!--        <form method = "POST">-->
+        <form method="POST" id="contractSaleForm" data-contract-url="{% url 'accounting:ajax_load_contract' %}" novalidate>
             {% csrf_token %}
             {{form.media}}
             {{form|crispy}}
@@ -64,6 +17,65 @@
         </form>
     </div>
     </div>
+
+  <script>
+
+  window.addEventListener("DOMContentLoaded", (event) => {
+        const el = document.getElementById('id_contract');
+        if (el) {
+            el.addEventListener('change', set_rate, false);
+        }
+    });
+
+    window.addEventListener("DOMContentLoaded", (event) => {
+        const el = document.getElementById('id_worked_hours');
+        if (el) {
+            el.addEventListener('change', set_total_amount, false);
+        }
+    });
+
+  function set_rate(){
+    console.log("hello!");
+    var url = $("#contractSaleForm").attr("data-contract-url");  // get the url of the `load_cities` view
+    console.log(url);
+    var contractId = $(this).val();  // get the selected country ID from the HTML input
+    console.log("contract Id:" + contractId);
+    console.log("url: " + url);
+    $.ajax({                       // initialize an AJAX request
+      url: url,                    // set the url of the request (= localhost:8000/accounting/load-contract/)
+      dataType: "json",
+      data: {
+        //'csrfmiddlewaretoken': '{{ csrf_token }}',
+        'contract': contractId       // add the contract id to the GET parameters
+      },
+      success: function (data) {   // `data` is the return of the `load_contracts` view function
+        //console.log(data);
+        $("#id_rate_amount").html(data.rate_amount);
+        $("#id_rate_amount").val(data.rate_amount);
+      },
+        error: function(e)
+        {
+            alert('Error: ' + e);
+        }
+    });
+  }
+
+  function set_total_amount(){
+    console.log("calculating total amount...");
+    var rate_amount = $('#id_rate_amount').val();
+    var worked_hours = $(this).val();
+
+    if (rate_amount && worked_hours){
+        console.log("rate amount : " + rate_amount);
+        console.log("worked hours: " + worked_hours);
+        var total_amount = (rate_amount * worked_hours);
+        console.log("total amount: " + total_amount);
+        $('#id_total_amount').val(total_amount);
+    }
+  }
+
+  </script>
+
 {% endblock body %}
 {% load static %}
 

@@ -1,17 +1,22 @@
+import datetime
+
+import django
 from django.db import models
 from django_cleanup import cleanup
 from ckeditor.fields import RichTextField
 import django.db.models.options as options
 from datetime import date
 from django.utils.timezone import now
-
+from django.core.files.storage import FileSystemStorage
 
 options.DEFAULT_NAMES = options.DEFAULT_NAMES + (
     'es_index_name', 'es_type_name', 'es_mapping'
 )
 
+fs_invoice = FileSystemStorage(location="/invoices")
 
 # Create your models here.
+
 
 @cleanup.ignore
 class Customer(models.Model):
@@ -21,7 +26,7 @@ class Customer(models.Model):
     email = models.EmailField(max_length=150, blank=True, null=True)
     responsible = models.CharField(max_length=150, blank=True, null=True)
     created_date = models.DateTimeField(auto_now_add=True)
-    company_logo = models.FileField(blank=True, null=True, verbose_name="Add the company logo")
+    company_logo = models.FileField(upload_to='logos/', blank=True, null=True, verbose_name="Add the company logo")
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -77,7 +82,7 @@ class BankAccount(models.Model):
 @cleanup.ignore
 class Contract(models.Model):
     contract_alias = models.CharField(max_length=150, unique=True)
-    customer = models.ForeignKey("accounting.Customer", on_delete=models.SET_DEFAULT, default=None, null=True)
+    customer = models.ForeignKey("accounting.Customer", on_delete=models.CASCADE)
     start_date = models.DateField(help_text='contract start date')
     end_date = models.DateField(help_text='contract end date', blank=True, null=True)
     rate_type = models.CharField(max_length=150)        # hourly, daily, weekly, monthly
@@ -111,11 +116,11 @@ class Contract(models.Model):
 
 @cleanup.ignore
 class ContractSale(models.Model):
-    contract = models.ForeignKey("accounting.Contract", on_delete=models.SET_DEFAULT,
-                                 default=None)
-    date = models.DateField(help_text='date', default=now())
+    contract = models.ForeignKey("accounting.Contract", on_delete=models.CASCADE)
+    date = models.DateField(help_text='date', default=django.utils.timezone.now)
     worked_hours = models.FloatField()
     total_amount = models.FloatField(blank=True, null=True)
+    is_invoiced = models.BooleanField(default=False)
     note = models.TextField(blank=True)
 
     # implement calculated field
@@ -177,3 +182,35 @@ class MileStone(models.Model):
         #         'description': {'type': 'string', 'index': 'not_analyzed'}
         #     }
         # }
+
+
+@cleanup.ignore
+class ContractSalesInvoice(models.Model):
+    sales = models.ForeignKey("accounting.ContractSale", on_delete=models.CASCADE, unique=True)
+    invoice_number = models.CharField(max_length=100)
+    date = models.DateField(help_text='invoice date', default= django.utils.timezone.now)
+    due_date = models.DateField(help_text='invoice due date', default=now() + datetime.timedelta(days=7))
+    is_paid_off = models.BooleanField(default=False)
+    invoice_file = models.FileField(upload_to='invoices/%Y-%b', blank=True, null=True, verbose_name="Add an invoice file")
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.invoice_number
+
+    class Meta:
+        ordering = ['-due_date']
+
+
+@cleanup.ignore
+class ContractSalesTransaction(models.Model):
+    invoice = models.ForeignKey("accounting.ContractSalesInvoice", on_delete=models.CASCADE, unique=True)
+    date = models.DateField(help_text='invoice date', default=django.utils.timezone.now)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    bank_account = models.ForeignKey("accounting.BankAccount", on_delete=models.CASCADE)
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.invoice.invoice_number
+
+    class Meta:
+        ordering = ['-date']

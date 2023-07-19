@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = "accounting"
 
@@ -30,7 +32,28 @@ urlpatterns = [
     path('contract_sales', views.contract_sales, name='contract_sales'),
     path('add_contract_sale', views.add_contract_sale, name='add_contract_sale'),
     path('contract_sale_detail/<int:id>', views.contract_sale_detail, name='contract_sale_detail'),
+    path('load_contract', views.load_contract, name='ajax_load_contract'),
     path('update_contract_sale/<int:id>', views.update_contract_sale, name='update_contract_sale'),
     path('delete_contract_sale/<int:id>', views.delete_contract_sale, name='delete_contract_sale'),
-    path('selected_contract_id/', views.selected_contract_id, name='selected_contract_id')
+
+    # contract sales invoice
+    path('cont_sale_invoices', views.contract_sale_invoices, name='cont_sale_invoices'),
+    path('add_cont_sale_invoice', views.add_contract_sale_invoice, name='add_cont_sale_invoice'),
+    path('set_invoice_data', views.set_invoice_data, name='ajax_set_invoice_data'),
+    path('cont_sale_invoice_detail/<int:id>', views.cont_sale_invoice_detail, name='cont_sale_invoice_detail'),
+    path('update_cont_sale_invoice/<int:id>', views.update_cont_sale_invoice, name='update_cont_sale_invoice'),
+    path('delete_cont_sale_invoice/<int:id>', views.delete_cont_sale_invoice, name='delete_cont_sale_invoice'),
+
+    # contract sales transactions
+    path('cont_sales_transactions', views.contract_sales_transactions, name='cont_sales_transactions'),
+    path('add_cont_sales_transaction', views.add_contract_sales_transaction, name='add_cont_sales_transaction'),
+    path('set_transaction_data', views.set_transaction_data, name='ajax_set_transaction_data'),
+    path('cont_sales_transaction_detail/<int:id>', views.cont_sales_transaction_detail, name='cont_sales_transaction_detail'),
+    path('update_cont_sales_transaction/<int:id>', views.update_cont_sales_transaction, name='update_cont_sales_transaction'),
+    path('delete_cont_sales_transaction/<int:id>', views.delete_cont_sales_transaction, name='delete_cont_sales_transaction'),
+
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

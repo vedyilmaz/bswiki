@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block body %}
+{% load crispy_forms_tags %}
+
+    <div class="row">
+    <div class="col-md-6 offset-md-3 ml-auto" style = "margin-top:20px;">
+        <h3>Add Contract Sale Transaction  - {{ invoice_data.invoice_number }}</h3>
+        <hr>
+        <form method = "POST" >
+            {% csrf_token %}
+            {{form.media}}
+            {{form|crispy}}
+            <br>
+            <button type="submit" class="btn btn-primary">Add Contract Sale Transaction</button>
+
+        </form>
+    </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+                    set_fields();
+                });
+
+
+        function set_fields(){
+            console.log("setting selected values...");
+            var el_amount = document.getElementById("id_amount");
+            var el_invoice = document.getElementById("id_invoice");
+            $(el_amount).val({{ invoice_data.sales__total_amount }});
+            $(el_invoice).val({{ invoice_data.id }});
+            //console.log(el_amount);
+        }
+    </script>
+{% endblock body %}
+{% load static %}
+

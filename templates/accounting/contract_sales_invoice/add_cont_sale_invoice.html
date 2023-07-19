@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block body %}
+{% load crispy_forms_tags %}
+
+    <div class="row">
+    <div class="col-md-6 offset-md-3 ml-auto" style = "margin-top:20px;">
+        <h3>Add Contract Sale Invoice - {{ invoice_data.id }} </h3>
+        <hr>
+        <form method = "POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form.media}}
+            {{form|crispy}}
+            <br>
+            <button type="submit" class="btn btn-primary">Add Contract Sale Invoice</button>
+        </form>
+    </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            set_fields("id_sales", {{ invoice_data.id }});
+        });
+
+
+        function set_fields(el_name, new_value){
+            console.log("setting selected values...");
+            var el = document.getElementById(el_name);
+            $(el).val(new_value);
+        }
+
+        document.getElementById("id_invoice_file").addEventListener("change",function(){
+            var filename = this.value
+            if (filename){
+                filename = filename.replace(/^.*[\\\/]/, '').replace('.pdf','');
+                set_fields("id_invoice_number", filename);
+            }
+            console.log("file selected:" + filename);
+        })
+    </script>
+{% endblock body %}
+{% load static %}
+

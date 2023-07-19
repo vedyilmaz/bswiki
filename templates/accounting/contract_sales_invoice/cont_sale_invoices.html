@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+{% load humanize %}
+{% load mathfilters %}
+{% block body %}
+    
+
+
+    <div class="container-fluid">
+<!--     <a class="btn btn-primary disabled" href ="{% url 'accounting:add_cont_sale_invoice' %}">Add Contract Sale Invoice</a>-->
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+              <form>
+                  <h3>Contract Sales Invoices</h3>
+                  <p>&nbsp;</p>
+                  <a class="btn btn-info btn-md disabled"  id="id_btn_payoff" onclick="set_transaction_data()">Pay off</a>
+<!--                {% csrf_token %}-->
+<!--                <button class="btn btn-secondary" type="submit">Search</button>-->
+          </div>
+<!--                <input type="text" name="keyword" class="form-control" placeholder="Input a keyword to search for ..." aria-label="" aria-describedby="basic-addon1">-->
+              </form>
+        </div>
+
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+              <form>
+                {% csrf_token %}
+                <button class="btn btn-secondary" type="submit">Search</button>
+          </div>
+                <input type="text" name="keyword" class="form-control" placeholder="Input a keyword ..." aria-label="" aria-describedby="basic-addon1">
+              </form>
+        </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" checked />
+                <label class="form-check-label" for="inlineCheckbox1">Hide paid off</label>
+            </div>
+
+    {% if not cont_sales_invoices %}
+        <div class="alert alert-danger" style = "margin-top:20px;">There is no contract sale invoice yet.</div>
+    </div>
+    {% else %}
+        <table class="table table-hover" style="margin-top:20px;">
+            <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">payoff</th>
+                    <th scope="col">Invoice Number</th>
+                    <th scope="col">Contract Alias</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Due Date</th>
+                    <th scope="col">Total Amount</th>
+                    <th scope="col">Paid off</th>
+                    <th scope="col">Currency</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cs in cont_sales_invoices  %}
+                    <tr>
+                        <th scope="row">{{ cs.id }}</th>
+                        {% if cs.is_paid_off %}
+                        <td><input class="form-check-input" type="radio" name="radio-select-topay" style="vertical-align: middle; margin: 10px;" disabled></td>
+                        {% else %}
+                        <td><input class="form-check-input radioPayoff" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}"></td>
+                        {% endif %}
+                        <td><a title="Invoice details" href="{% url 'accounting:cont_sale_invoice_detail' cs.id %}#container">{{ cs.invoice_number }} - {{ cs.id }}</a></td>
+                        <td><a title="Contract details" href="{% url 'accounting:contract_detail' cs.sales__contract__id %}#container">{{ cs.sales__contract__contract_alias }} - {{ cs.sales }}</a></td>
+                        <td>{{ cs.date }}</td>
+                        <td>{{ cs.due_date }}</td>
+                        <td>{{ cs.sales__total_amount }}</td>
+                        <td>{{ cs.is_paid_off }}</td>
+                        <td>{{ cs.sales__contract__currency }}</td>
+                        <td><a href="{% url 'accounting:update_cont_sale_invoice' cs.id %}">Update</a></td>
+                        <td><a class="confirm-delete" href="{% url 'accounting:delete_cont_sale_invoice' cs.id %}">Delete</a></td>
+                    </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    <script>
+
+    let invoice_id = 0;
+    $(document).on('click', '.confirm-delete', function(){
+        return confirm('Are you sure you want to delete this?');
+    })
+
+    function getElement(elm){
+        return document.getElementById(elm);
+    }
+
+    function removeClass(elm, class_name){
+        var stat = elm.classList.contains("disabled");
+        if (stat == true) {
+            elm.classList.remove(class_name);
+            console.log("class name removed:" + class_name);
+        }
+    }
+
+    function addClass(elm, class_name){
+        var stat = elm.classList.contains(class_name);
+        if (stat == false) {
+            elm.classList.add(class_name);
+            console.log("class name removed:" + class_name);
+        }
+    }
+
+    var matches = document.querySelectorAll('.radioPayoff');
+    for (match in matches) {
+      matches[match].onclick = function() {
+        invoice_id = this.value;
+        console.log("invoice id set!");
+        var btn_payoff = getElement('id_btn_payoff');
+        removeClass(btn_payoff, "disabled");
+        removeClass(btn_payoff, "text-gray");
+        addClass(btn_payoff, "text-white");
+      }
+    }
+
+    function set_transaction_data(){
+        console.log("hello!");
+        const url = "/accounting/set_transaction_data";  // get the url of the view
+        console.log("url: "+url);
+        console.log("invoice id: " +invoice_id);
+        $.ajax({                       // initialize an AJAX request
+          url: url,                    // set the url of the request (= localhost:8000/accounting/load-contract/)
+          dataType: "json",
+          method: "POST",
+          data: {
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'invoice_id': invoice_id,       // add the contract id to the GET parameters
+          },
+          success: function (data) {   // `data` is the return of the `load_contracts` view function
+            console.log(data.invoice_number);
+            window.location.href = "{% url 'accounting:add_cont_sales_transaction' %}"
+    <!--        $("#id_rate_amount").html(data.rate_amount);-->
+    <!--        $("#id_rate_amount").val(data.rate_amount);-->
+          },
+            error: function(e)
+            {
+                console.log('Error: ' + e);
+            }
+        });
+  }
+
+    </script>
+        
+    {% endif %}
+{% endblock body %}

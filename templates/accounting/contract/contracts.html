@@ -2,28 +2,25 @@
 {% load humanize %}
 {% block body %}
     
-    <div class="row">
-        <div class = "col-md-10 offset-md-3">
-            <div class="col-lg-8">
-                <h3>Contracts</h3>
-                <hr>
-            </div>
+    <div class="container-fluid">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+              <form>
+                  <h3>Contracts</h3>
+                  <p>&nbsp;</p>
+                  <a class="btn btn-primary" href ="{% url 'accounting:add_contract' %}">Add Contract</a>
+          </div>
+              </form>
         </div>
-    </div>
 
-     <a class="btn btn-primary" href ="{% url 'accounting:add_contract' %}">Add Contract</a>
-
-    <div class="row">
-        <div class = "col-md-10 offset-md-3">
-            <div class="col-lg-8">
-                <div align="right">
-                    <form>
-                        {% csrf_token %}
-                        <input type="text" name = "keyword" class="input" placeholder="Search">
-                        <button type="submit" class="btn btn-danger">Search</button>
-                    </form>
-                </div>
-            </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+              <form>
+                {% csrf_token %}
+                <button class="btn btn-secondary" type="submit">Search</button>
+          </div>
+                <input type="text" name="keyword" class="form-control" placeholder="Input a keyword ..." aria-label="" aria-describedby="basic-addon1">
+              </form>
         </div>
     </div>
 
