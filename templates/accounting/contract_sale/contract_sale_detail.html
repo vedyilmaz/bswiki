@@ -5,14 +5,14 @@
   <div class="row">
 
     <!-- Post Content Column -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 p-3 mb-2 bg-light text-dark">
 
         <!-- Contract Alias -->
-        <h3 class="mt-4">{{ contract_sale.contract__contract_alias }}</h3>
+        <h4 class="mt-4">Contract Sales Detail</h4>
         <hr>
         <!-- Post Content -->
         <p class="lead">
-            <b>Contract Alias:</b> {{ contract_sale.contract_id__contract_alias|safe }}
+            <b>Contract Alias:</b> {{ contract_sale.contract__contract_alias|safe }}
         </p>
         <p class="lead">
             <b>Date:</b> {{ contract_sale.date|safe }}
@@ -21,13 +21,13 @@
             <b>Worked Hours:</b> {{ contract_sale.worked_hours|safe }}
         </p>
         <p class="lead">
-            <b>Rate Amount:</b> {{ contract_sale.contract_id__rate_amount|safe }}
+            <b>Rate Amount:</b> {{ contract_sale.contract__rate_amount|safe }}
         </p>
         <p class="lead">
-            <b>Total Amount:</b> {{ contract_sale.amount|safe }}
+            <b>Total Amount:</b> {{ contract_sale.total_amount|safe }}
         </p>
         <p class="lead">
-            <b>Currency:</b> {{ contract_sale.contract_id__currency|safe }}
+            <b>Currency:</b> {{ contract_sale.contract__currency|safe }}
         </p>
         <p class="lead">
             <b>Note:</b> {{ contract_sale.note|safe }}

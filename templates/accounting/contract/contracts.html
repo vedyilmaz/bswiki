@@ -9,6 +9,7 @@
                   <h3>Contracts</h3>
                   <p>&nbsp;</p>
                   <a class="btn btn-primary" href ="{% url 'accounting:add_contract' %}">Add Contract</a>
+                  <a class="btn btn-primary disabled" id="id_btn_add_sales" onclick="set_sales_data()" >Add Contract Sales</a>
           </div>
               </form>
         </div>
@@ -22,15 +23,17 @@
                 <input type="text" name="keyword" class="form-control" placeholder="Input a keyword ..." aria-label="" aria-describedby="basic-addon1">
               </form>
         </div>
-    </div>
+
 
     {% if not contracts %}
         <div class="alert alert-danger" style = "margin-top:20px;">There is no contract yet.</div>
+    </div>
     {% else %}
         <table class="table table-hover" style="margin-top:20px;">
             <thead>
                 <tr>
                     <th scope="col">id</th>
+                    <th scope="col">Add Sales</th>
                     <th scope="col">Contract</th>
                     <th scope="col">Customer</th>
                     <th scope="col">Start Date</th>
@@ -45,8 +48,8 @@
                 {% for contract in contracts  %}
                     <tr>
                         <th scope="row">{{ contract.id }}</th>
+                        <td><input class="form-check-input radioContract" style="vertical-align: middle; margin: 10px;" name="radio-contract" type="radio" value="{{ contract.id }}"></td>
                         <td><a href="{% url 'accounting:contract_detail' contract.id %}">{{ contract.contract_alias }}</a></td>
-                                    <!--/articles/article/{{ article.id }}-->
                         <td>{{ contract.customer }}</td>
                         <td>{{ contract.start_date }}</td>
                         <td>{{ contract.rate_type }}</td>
@@ -63,6 +66,71 @@
             </tbody>
         </table>
 
-        
+    <script>
+    let contract_id = 0
+
+    function getElement(elm){
+        return document.getElementById(elm);
+    }
+
+    function removeClass(elm, class_name){
+        var stat = elm.classList.contains("disabled");
+        if (stat == true) {
+            elm.classList.remove(class_name);
+            console.log("class name removed:" + class_name);
+        }
+    }
+
+    function addClass(elm, class_name){
+        var stat = elm.classList.contains(class_name);
+        if (stat == false) {
+            elm.classList.add(class_name);
+            console.log("class name removed:" + class_name);
+        }
+    }
+
+    var matches = document.querySelectorAll('.radioContract');
+    for (match in matches) {
+      matches[match].onclick = function() {
+        contract_id = this.value;
+        console.log("contract id set!");
+        var btn_add_sales = getElement('id_btn_add_sales');
+        removeClass(btn_add_sales, "disabled");
+        removeClass(btn_add_sales, "text-gray");
+        addClass(btn_add_sales, "text-white");
+      }
+    }
+
+    function set_sales_data(){
+        console.log("setting the sales data...");
+        const url = "/accounting/set_sales_data";  // get the url of the view
+        console.log("url: " + url);
+        console.log("contract id: " + contract_id);
+        if (contract_id > 0){
+            $.ajax({                       // initialize an AJAX request
+              url: url,                    // set the url of the request (= localhost:8000/accounting/load-contract/)
+              dataType: "json",
+              method: "POST",
+              data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'contract_id': contract_id,       // add the contract id to the GET parameters
+              },
+              success: function (data) {   // `data` is the return of the `load_contracts` view function
+                console.log(data.id);
+                window.location.href = "{% url 'accounting:add_contract_sale' %}"
+        <!--        $("#id_rate_amount").html(data.rate_amount);-->
+        <!--        $("#id_rate_amount").val(data.rate_amount);-->
+              },
+                error: function(e)
+                {
+                    console.log('Error: ' + e);
+                }
+            });
+        }else{
+            console.log("contract id not found!");
+        }
+  }
+
+    </script>
     {% endif %}
 {% endblock body %}

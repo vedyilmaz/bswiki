@@ -2,6 +2,7 @@ import datetime
 
 import django
 from django.db import models
+from django.db.models import Q
 from django_cleanup import cleanup
 from ckeditor.fields import RichTextField
 import django.db.models.options as options
@@ -119,7 +120,7 @@ class ContractSale(models.Model):
     contract = models.ForeignKey("accounting.Contract", on_delete=models.CASCADE)
     date = models.DateField(help_text='date', default=django.utils.timezone.now)
     worked_hours = models.FloatField()
-    total_amount = models.FloatField(blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     is_invoiced = models.BooleanField(default=False)
     note = models.TextField(blank=True)
 
@@ -138,6 +139,8 @@ class ContractSale(models.Model):
 
     def __str__(self):
         return self.contract.contract_alias
+
+
 
     class Meta:
         ordering = ['-date']
@@ -186,10 +189,13 @@ class MileStone(models.Model):
 
 @cleanup.ignore
 class ContractSalesInvoice(models.Model):
-    sales = models.ForeignKey("accounting.ContractSale", on_delete=models.CASCADE, unique=True)
+    # sales = models.ForeignKey("accounting.ContractSale", on_delete=models.CASCADE, unique=True)
+    contract = models.ForeignKey("Contract", on_delete=models.CASCADE, default=1)
+    sales_ids = models.CharField(max_length=100, verbose_name="sales_ids")
     invoice_number = models.CharField(max_length=100)
     date = models.DateField(help_text='invoice date', default= django.utils.timezone.now)
     due_date = models.DateField(help_text='invoice due date', default=now() + datetime.timedelta(days=7))
+    total_amount = models.DecimalField(verbose_name="total_amount", decimal_places=2, max_digits=12, default=0)
     is_paid_off = models.BooleanField(default=False)
     invoice_file = models.FileField(upload_to='invoices/%Y-%b', blank=True, null=True, verbose_name="Add an invoice file")
     note = models.TextField(blank=True)

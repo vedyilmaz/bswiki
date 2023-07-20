@@ -15,16 +15,45 @@
         </form>
     </div>
     </div>
+        {% for idata in invoice_data %}
+
+        {% endfor %}
 
 
     <script>
+        let total_amount = 0;
+
         document.addEventListener("DOMContentLoaded", function(event) {
-            set_fields("id_sales", {{ invoice_data.id }});
+            let invoice_data = {{ invoice_data|safe }};
+            const sales_ids = [];
+            var total = 0;
+
+            console.log(invoice_data);
+            if (invoice_data) {
+                for (var i=0; i<invoice_data.length; i++){
+                    total += invoice_data[i].total_amount;
+                    sales_ids.push(invoice_data[i].id);
+                }
+                console.log("sales_id:" + sales_ids );
+                console.log("total:" + total );
+
+                set_fields("id_sales_ids", sales_ids);
+                set_fields("id_total_amount", total);
+
+            }else{
+                console.log("invoice data not received!");
+            }
+
+
         });
 
+        function get_total_amount(total){
+            total_amount += total;
+            console.log("total amount: " + total_amount);
+        }
 
         function set_fields(el_name, new_value){
-            console.log("setting selected values...");
+            console.log("setting selected values for " + el_name);
             var el = document.getElementById(el_name);
             $(el).val(new_value);
         }
@@ -33,6 +62,7 @@
             var filename = this.value
             if (filename){
                 filename = filename.replace(/^.*[\\\/]/, '').replace('.pdf','');
+                console.log("filename: " + filename);
                 set_fields("id_invoice_number", filename);
             }
             console.log("file selected:" + filename);

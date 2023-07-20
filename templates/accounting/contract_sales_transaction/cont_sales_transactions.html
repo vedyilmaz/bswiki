@@ -47,7 +47,7 @@
 <!--                        <th scope="row">{{ cs.id }}</th>-->
                         <td><a title="Transaction details" href="{% url 'accounting:cont_sales_transaction_detail' cs.id %}#container">{{ cs.id }}</a></td>
                         <td><a title="Invoice details" href="{% url 'accounting:cont_sale_invoice_detail' cs.invoice %}#container">{{ cs.invoice__invoice_number }}</a></td>
-                        <td><a title="Contract details" href="{% url 'accounting:contract_detail' cs.invoice__sales__contract__id %}#container">{{ cs.invoice__sales__contract__contract_alias }}</a></td>
+                        <td><a title="Contract details" href="{% url 'accounting:contract_detail' cs.invoice__contract__id %}#container">{{ cs.invoice__contract__contract_alias }}</a></td>
                         <td>{{ cs.date }}</td>
                         <td>{{ cs.amount }}</td>
                         <td>{{ cs.invoice__sales__contract__currency }}</td>

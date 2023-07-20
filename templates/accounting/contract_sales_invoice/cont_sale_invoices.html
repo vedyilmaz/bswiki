@@ -61,13 +61,13 @@
                         {% else %}
                         <td><input class="form-check-input radioPayoff" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}"></td>
                         {% endif %}
-                        <td><a title="Invoice details" href="{% url 'accounting:cont_sale_invoice_detail' cs.id %}#container">{{ cs.invoice_number }} - {{ cs.id }}</a></td>
-                        <td><a title="Contract details" href="{% url 'accounting:contract_detail' cs.sales__contract__id %}#container">{{ cs.sales__contract__contract_alias }} - {{ cs.sales }}</a></td>
+                        <td><a title="Invoice details" href="{% url 'accounting:cont_sale_invoice_detail' cs.id %}#container">{{ cs.invoice_number }}</a></td>
+                        <td><a title="Contract details" href="{% url 'accounting:contract_detail' cs.contract__id %}#container">{{ cs.contract__contract_alias }}</a></td>
                         <td>{{ cs.date }}</td>
                         <td>{{ cs.due_date }}</td>
-                        <td>{{ cs.sales__total_amount }}</td>
+                        <td>{{ cs.total_amount }}</td>
                         <td>{{ cs.is_paid_off }}</td>
-                        <td>{{ cs.sales__contract__currency }}</td>
+                        <td>{{ cs.contract__currency }}</td>
                         <td><a href="{% url 'accounting:update_cont_sale_invoice' cs.id %}">Update</a></td>
                         <td><a class="confirm-delete" href="{% url 'accounting:delete_cont_sale_invoice' cs.id %}">Delete</a></td>
                     </tr>

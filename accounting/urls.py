@@ -25,6 +25,7 @@ urlpatterns = [
     path('contracts', views.contracts, name='contracts'),
     path('contract/<int:id>', views.contract_detail, name='contract_detail'),
     path('add_contract', views.add_contract, name='add_contract'),
+    path('set_sales_data', views.set_sales_data, name='ajax_set_sales_data'),
     path('update_contract/<int:id>', views.update_contract, name='update_contract'),
     path('delete_contract/<int:contract_id>', views.delete_contract, name='delete_contract'),
 

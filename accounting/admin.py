@@ -56,10 +56,10 @@ class ContractSalesAdmin(admin.ModelAdmin):
 
 @admin.register(ContractSalesInvoice)
 class ContractSalesInvoiceAdmin(admin.ModelAdmin):
-    list_display = ["sales", "invoice_number", "date", "due_date", "is_paid_off", "invoice_file"]
-    list_display_links = ["sales", "invoice_number", "date"]
+    list_display = ["sales_ids", "invoice_number", "date", "due_date", "is_paid_off", "invoice_file"]
+    list_display_links = ["sales_ids", "invoice_number", "date"]
     search_fields = ["invoice_number"]
-    list_filter = ["sales"]
+    list_filter = ["sales_ids"]
     list_per_page = 25
 
     class Meta:

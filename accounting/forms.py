@@ -1,4 +1,4 @@
-from django.forms import ModelForm, SelectDateWidget, ClearableFileInput
+from django.forms import ModelForm, SelectDateWidget, ClearableFileInput, models
 from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice, ContractSalesTransaction
 from .widgets import DatePickerInput, TimePickerInput, DateTimePickerInput
 from django import forms
@@ -60,6 +60,7 @@ class ContractSaleForm(ModelForm):
             'date': DatePickerInput(),
         }
 
+
     # def __init__(self, *args, **kwargs):
     #     super().__init__(*args, **kwargs)
     #     # print(self.instance)
@@ -84,12 +85,18 @@ class ContractSaleForm(ModelForm):
     #         print("empty data!")
 
 
+    def __init__(self, *args, **kwargs):
+        super(ContractSaleForm, self).__init__(*args, **kwargs)
+        self.fields['contract'].widget.attrs['hidden'] = True
+
+
 class ContractSaleInvoiceForm(ModelForm):
 
     class Meta:
         model = ContractSalesInvoice
 
-        fields = ['sales', 'invoice_number', 'date', 'due_date', 'is_paid_off', 'invoice_file', 'note']
+        fields = ['contract', 'sales_ids', 'invoice_number', 'date', 'due_date', 'is_paid_off', 'invoice_file',
+                  'total_amount', 'note']
 
         widgets = {
             'date': DatePickerInput(),

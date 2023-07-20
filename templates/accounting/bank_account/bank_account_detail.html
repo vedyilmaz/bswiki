@@ -5,14 +5,15 @@
   <div class="row">
 
     <!-- Post Content Column -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 p-3 mb-2 bg-light text-dark">
 
         <!-- Title -->
-        <h3 class="mt-4">{{bank_account_detail.account_alias}}</h3>
-
+        <h4 class="mt-4">Bank Account Details</h4>
         <hr>
-
         <!-- Post Content -->
+        <p class="lead">
+            <b>Account Alias:</b> {{ bank_account_detail.account_alias|safe }}
+        </p>
          <p class="lead">
             <b>Bank:</b> {{ bank_account_detail.bank|safe }}
         </p>

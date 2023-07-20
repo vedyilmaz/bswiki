@@ -5,12 +5,15 @@
   <div class="row">
 
     <!-- Post Content Column -->
-    <div class="col-lg-8">
+    <div class="col-lg-8 p-3 mb-2 bg-light text-dark">
 
         <!-- Contract Alias -->
-        <h4 class="mt-4">{{ cont_sales_transaction.invoice__sales__contract__contract_alias }}</h4>
+        <h4 class="mt-4">Contract Sale Transaction Details</h4>
         <hr>
         <!-- Post Content -->
+         <p class="lead">
+            <b>Contract:</b> {{ cont_sales_transaction.invoice__contract__contract_alias|safe }}
+        </p>
         <p class="lead">
             <b>Invoice Number:</b> {{ cont_sales_transaction.invoice__invoice_number|safe }}
         </p>
@@ -18,10 +21,10 @@
             <b>Date:</b> {{ cont_sales_transaction.date|safe }}
         </p>
         <p class="lead">
-            <b>Currency:</b> {{ cont_sales_transaction.invoice__sales__contract__currency|safe }}
+            <b>Currency:</b> {{ cont_sales_transaction.invoice__contract__currency|safe }}
         </p>
         <p class="lead">
-            <b>Total Amount:</b> {{ cont_sales_transaction.invoice__sales__total_amount|safe }}
+            <b>Total Amount:</b> {{ cont_sales_transaction.invoice__total_amount|safe }}
         </p>
         <p class="lead">
             <b>Note:</b> {{ cont_sales_transaction.note|safe }}
