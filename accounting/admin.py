@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice
+from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice, RateType, BillingPeriod, \
+    ContractType
 
 
 @admin.register(Customer)
@@ -30,8 +31,8 @@ class BankAccountsAdmin(admin.ModelAdmin):
 
 @admin.register(Contract)
 class ContractsAdmin(admin.ModelAdmin):
-    list_display = ["contract_alias", "customer", "start_date", "end_date", "rate_type",
-                    "rate_amount", "currency", "billing_period", "is_active", "description"]
+    list_display = ["contract_alias", "customer", "contract_type", "start_date", "end_date",
+                    "rate_amount", "currency", "is_active", "note"]
     list_display_links = ["contract_alias", "customer"]
     search_fields = ["contract_alias"]
     list_filter = ["contract_alias"]
@@ -44,8 +45,8 @@ class ContractsAdmin(admin.ModelAdmin):
 
 @admin.register(ContractSale)
 class ContractSalesAdmin(admin.ModelAdmin):
-    list_display = ["contract", "date", "worked_hours", "total_amount"]
-    list_display_links = ["contract", "date", "worked_hours", "total_amount"]
+    list_display = ["contract", "date", "sales_data", "total_amount"]
+    list_display_links = ["contract", "date", "sales_data", "total_amount"]
     search_fields = ["contract"]
     list_filter = ["contract"]
     list_per_page = 25
@@ -64,3 +65,39 @@ class ContractSalesInvoiceAdmin(admin.ModelAdmin):
 
     class Meta:
         model = ContractSalesInvoice
+
+
+@admin.register(RateType)
+class RateTypeAdmin(admin.ModelAdmin):
+    list_display = ["rate_type", "billing_period"]
+    list_display_links = ["rate_type", "billing_period"]
+    search_fields = ["rate_type"]
+    list_filter = ["rate_type"]
+    list_per_page = 25
+
+    class Meta:
+        model = RateType
+
+
+@admin.register(BillingPeriod)
+class BillingPeriodAdmin(admin.ModelAdmin):
+    list_display = ["billing_period"]
+    list_display_links = ["billing_period"]
+    search_fields = ["billing_period"]
+    list_filter = ["billing_period"]
+    list_per_page = 25
+
+    class Meta:
+        model = BillingPeriod
+
+
+@admin.register(ContractType)
+class ContractTypeAdmin(admin.ModelAdmin):
+    list_display = ["contract_type", "rate_type"]
+    list_display_links = ["contract_type"]
+    search_fields = ["contract_type"]
+    list_filter = ["contract_type"]
+    list_per_page = 25
+
+    class Meta:
+        model = BillingPeriod

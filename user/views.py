@@ -7,6 +7,8 @@ from django.contrib.auth import login,authenticate,logout
 from django.contrib import messages
 
 # Create your views here.
+
+
 def register(request):
 
     form = RegisterForm(request.POST or None)
@@ -26,6 +28,7 @@ def register(request):
            "form" : form
         }
         return render(request,"register.html",context)
+
 
 def loginUser(request):
     form = LoginForm(request.POST or None)
@@ -47,6 +50,7 @@ def loginUser(request):
             return HttpResponseRedirect(reverse('index'))
     else:
         return render(request,"login.html", context)
+
 
 def logoutUser(request):
     logout(request)

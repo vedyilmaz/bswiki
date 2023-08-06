@@ -17,8 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from rest_framework import routers, serializers, viewsets
+import accounting.views
 from article import views
+from accounting.models import ContractSale
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,7 +30,12 @@ urlpatterns = [
     path('detail/<int:id>', views.detail, name="detail"),
     path('article/', include("article.urls")),
     path('user/', include("user.urls")),
-    path('accounting/', include("accounting.urls"))
+    path('accounting/', include("accounting.urls")),
+    path('error_404/', accounting.views.error_404, name='error_404')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# handler403 = 'mysite.views.my_custom_permission_denied_view'
+# handler400 = 'mysite.views.my_custom_bad_request_view'
+handler404 = "accounting.views.error_404"
+# handler500 = "accounting.views.error_500"

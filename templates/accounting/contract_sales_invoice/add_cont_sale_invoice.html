@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
     <div class="row">
-    <div class="col-md-6 offset-md-3 ml-auto" style = "margin-top:20px;">
+    <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
         <h3>Add Contract Sale Invoice - {{ invoice_data.id }} </h3>
         <hr>
         <form method = "POST" enctype="multipart/form-data">
@@ -31,13 +31,14 @@
             console.log(invoice_data);
             if (invoice_data) {
                 for (var i=0; i<invoice_data.length; i++){
-                    total += invoice_data[i].total_amount;
+                    total += parseFloat(invoice_data[i].total_amount);
                     sales_ids.push(invoice_data[i].id);
                 }
                 console.log("sales_id:" + sales_ids );
                 console.log("total:" + total );
 
                 set_fields("id_sales_ids", sales_ids);
+                set_fields("id_contract", invoice_data[0].contract__id);
                 set_fields("id_total_amount", total);
 
             }else{
@@ -68,6 +69,8 @@
             console.log("file selected:" + filename);
         })
     </script>
+
+
 {% endblock body %}
 {% load static %}
 

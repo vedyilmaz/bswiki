@@ -1,25 +1,28 @@
 import json
-from datetime import datetime
-from random import random
-
 from _decimal import Decimal
-from django.core import serializers
-from django.core.files.storage import FileSystemStorage
-from django.db.models import Q
-from django.forms import forms, ModelForm
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
+from django.http import Http404, JsonResponse, HttpResponseRedirect
+from django.template import loader
+from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, viewsets, status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, renderer_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
-from accounting.models import Customer, BankAccount, Contract, ContractSale, ContractSalesTransaction
+from accounting.models import Customer, BankAccount, Contract, ContractSale, ContractSalesTransaction, MileStone
 from django.contrib import messages
 from accounting.forms import CustomerForm, BankAccountForm, ContractForm, ContractSaleForm, \
-    ContractSalesInvoice, ContractSaleInvoiceForm, ContractSaleTransactForm
+    ContractSalesInvoice, ContractSaleInvoiceForm, ContractSaleTransactForm, MileStoneForm
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404, reverse
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-import numpy as np
 import ast
+from accounting.serializers import ContractSaleSerializer, ContractSerializer
+from django.core.cache import cache
 
 
 @login_required(login_url="user:login")
@@ -47,7 +50,7 @@ def add_customer(request):
 
     if form.is_valid():
         customer = form.save(commit=False)  # creates only the article object
-        # customer.company = request.user
+        customer.user = request.user
         customer.save()
         messages.success(request, "Successfully added a new customer.")
 
@@ -88,6 +91,7 @@ def add_bank_account(request):
 
     if form.is_valid():
         bank_account = form.save(commit=False)  # creates only the article object
+        bank_account.user = request.user
         bank_account.save()
         messages.success(request, "Successfully added a new bank account.")
 
@@ -148,6 +152,7 @@ def add_contract(request):
 
     if form.is_valid():
         contract = form.save(commit=False)  # creates only the article object
+        contract.user = request.user
         contract.save()
         messages.success(request, "Successfully added a new contract.")
 
@@ -169,6 +174,43 @@ def contracts(request):
     all_contracts = Contract.objects.all()
 
     return render(request, "accounting/contract/contracts.html", {"contracts": all_contracts})
+
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def contract_list(request):
+    """
+    List all contracts
+    """
+    print("user autenticated!")
+
+    if request.method == 'GET':
+        cont = Contract.objects.all()
+        cont = ContractSerializer(cont, many=True, context={'request': request})
+        print(f"serialized data: {cont}")
+        return JsonResponse(cont.data, safe=False)
+
+        # return render(request, "accounting/contract_sale/contract_sales.html",
+        #               {'contract_sales': cont})
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        cont = ContractSerializer(data=data)
+        if cont.is_valid():
+            cont.save()
+            return JsonResponse(cont.data, status=201)
+
+        return JsonResponse(cont.errors, status=400)
+
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def contractdetail(request, id):
+    contract = Contract.objects.get(pk=id)
+    serializer = ContractSerializer(contract)
+    return JsonResponse(serializer.data)
 
 
 @login_required(login_url="user:login")
@@ -207,9 +249,14 @@ def add_contract_sale(request):
     form = ContractSaleForm(request.POST or None, request.FILES or None)
     print("adding a new contract sale record...")
 
+    referer = request.META.get('HTTP_REFERER')
+    if not referer:
+        raise Http404
+
     if form.is_valid():
         print("adding a new contract sale record...")
         contract_sale = form.save(commit=False)  # creates only the contract sale object
+        contract_sale.user = request.user
         contract_sale.save()
         messages.success(request, "Successfully added a new contract sale.")
 
@@ -234,6 +281,14 @@ def add_contract_sale(request):
         return render(request, "accounting/contract_sale/add_contract_sale.html", context)
 
 
+def error_404(request, exception):
+    return render(request, 'error_404.html/', status=404)
+
+
+def error_500(request, exception):
+    return render(request, 'error_500.html/', status=500)
+
+
 @login_required(login_url="user:login")
 def set_sales_data(request):
     contract_id = request.POST.get('contract_id')
@@ -244,14 +299,16 @@ def set_sales_data(request):
 
     selected_contract_data = Contract.objects.filter(id=int(contract_id), is_active=True) \
                         .values('id', 'contract_alias',
-                                'rate_type',
-                                'rate_amount',
-                                'currency',
-                                'billing_period') or None
+                                'contract_name',
+                                'contract_type__rate_type__rate_type',
+                                'contract_type__field_attributes',
+                                'contract_type__rate_type__billing_period__billing_period',
+                                'rate_amount', 'currency') or None
 
     if not selected_contract_data:
         return HttpResponse(500)
 
+    print(f"json contract data: {selected_contract_data}")
     str_data = json.dumps(selected_contract_data[0], cls=DecimalEncoder)
     print(f"str data: {str_data}")
     form = ContractSaleForm(request.POST or None, request.FILES or None)
@@ -267,39 +324,153 @@ def set_sales_data(request):
 
 
 @login_required(login_url="user:login")
+@renderer_classes([JSONRenderer, TemplateHTMLRenderer])
 def contract_sales(request):
     keyword = request.GET.get("keyword")
     if keyword:
-        all_contracts_sales = ContractSale.objects.filter(contract__contract_alias__contains=keyword) \
-            .values('id', 'contract', 'date', 'worked_hours', 'is_invoiced',
-                    'total_amount', 'contract__rate_amount',
-                    'contract__contract_alias', 'contract__currency')
+        # all_contracts_sales = ContractSale.objects.\
+        #     filter(contract__contract_alias__contains=keyword, user=request.user) \
+        #     .values('id', 'contract', 'date', 'sales_data', 'is_invoiced',
+        #             'total_amount', 'contract__rate_amount',
+        #             'contract__contract_alias', 'contract__contract_name',
+        #             'contract__contract_type__rate_type__rate_type', 'contract__currency')
 
-        return render(request, "accounting/contract_sale/contract_sales.html", {"contract_sales": all_contracts_sales})
+        all_contract_sales = ContractSale.objects.filter(contract__contract_alias__contains=keyword,
+                                                         user=request.user)
+        serialized_data = ContractSerializer(all_contract_sales, many=True)
 
-    # all_contracts_sales = ContractSale.objects.all()
-    all_contracts_sales = ContractSale.objects.all().values('id', 'contract', 'date', 'worked_hours', 'total_amount',
-                                                            'is_invoiced', 'contract__rate_amount',
-                                                            'contract__contract_alias',
-                                                            'contract__currency')
-    # ContractSale.objects.filter(~Q(contract__rate_type="project_based"))
-    context = {
-        "contract_sales": all_contracts_sales,
-    }
+        return render(request, "accounting/contract_sale/contract_sales.html",
+                      context={"contract_sales": serialized_data.data})
+
+    is_all = request.GET.get('is_all') or None
+    print(f"filter data state: {is_all}")
+
+    if is_all and int(is_all) == 1:
+        print("---showing all records---")
+        # cache.clear()
+        all_contract_sales = ContractSale.objects.filter(user=request.user)
+        serialized_data = ContractSaleSerializer(all_contract_sales, many=True)
+
+        context = {
+            "contract_sales": serialized_data.data,
+        }
+
+        print(f"filtered data: {context}")
+
+        template = loader.get_template("accounting/contract_sale/contract_sales.html")
+
+        return HttpResponse(template.render(context, request))
+
+        # return render(request, "accounting/contract_sale/contract_sales.html",
+        #               context)
+
+        # ContractSale.objects.filter(~Q(contract__rate_type="project_based"))
+    else:
+        #  by default show only un-invoiced ones
+        print("---by default showing un-invoiced ones only!---")
+
+        filtered_contracts_sales = ContractSale.objects.filter(is_invoiced=False, user=request.user)
+        serialized = ContractSaleSerializer(filtered_contracts_sales, many=True)
+
+        if not filtered_contracts_sales:
+            return render(request, "accounting/contract_sale/contract_sales.html")
+
+        context = {
+            "contract_sales": serialized.data,
+        }
+        print(context)
+
+        return render(request=request,
+                      template_name="accounting/contract_sale/contract_sales.html",
+                      context=context)
+
+    # list_dict = [obj for obj in all_contracts_sales]
+    # for dic in list_dict:
+    #     for key, val in dic.items():
+    #         print(f'{key}: {val}')
+
     # BelongsTo.objects.all().values('user', 'team__team_name', 'schedule')
-    return render(request, "accounting/contract_sale/contract_sales.html", context)
+    # content = render_to_string("accounting/contract_sale/contract_sales.html", context)
+    # return HttpResponse(content)
+
+    # return JsonResponse(list_dict, safe=False, status=200)
+
+@api_view(['GET'])
+# @renderer_classes([JSONRenderer, TemplateHTMLRenderer])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def contractsale_list(request):
+    """
+    List all contracts
+    """
+    print("user authenticated!")
+
+    if request.method == 'GET':
+        show_all = request.GET.get("is_all") == '1'
+        print(f"show all: {show_all}")
+        if show_all:
+            all_contract_sales = ContractSale.objects.filter(user=request.user)
+        else:
+            all_contract_sales = ContractSale.objects.filter(user=request.user, is_invoiced=0)
+
+        serializer = ContractSaleSerializer(all_contract_sales, many=True)
+        context = {'contract_sales': serializer.data}
+
+        print(f"serialized data: {serializer.data}")
+
+        return Response(data={'contract_sales': serializer.data})
+        #
+
+        # return render(request=request,
+        #               template_name="accounting/contract_sale/contractsales.html",
+        #               context=context)
+
+        # return HttpResponse(content=json.dumps(serializer.data), content_type="application/json")
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        csale = ContractSaleSerializer(data=data)
+        if csale.is_valid():
+            csale.save()
+            return Response(csale.data, status=201)
+
+        return Response(csale.errors, status=400)
+
+
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def contractsale_detail(request, id):
+
+    contractsale = ContractSale.objects.get(pk=id)
+    serializer = ContractSaleSerializer(contractsale)
+    return Response(serializer.data)
+
+    # elif request.method == 'PUT':
+    #     data = JSONParser().parse(request)
+    #     serializer = ContractSaleSerializer(contractsale, data=data)
+    #
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return JsonResponse(serializer.data)
+    #     return JsonResponse(serializer.errors, status=400)
+    #
+    # elif request.method == 'DELETE':
+    #     contractsale.delete()
+    #     return HttpResponse(status=204)
 
 
 @login_required(login_url="user:login")
 def contract_sale_detail(request, id):
     # print(f"contract sale id:{id}")
-    # contract_sale = get_object_or_404(ContractSale, id=id)
-
-    contract_sale = ContractSale.objects.filter(id=id).values('id', 'contract', 'date', 'worked_hours',
+    contract_sale = get_object_or_404(ContractSale, id=id)
+    contract_sale = ContractSale.objects.filter(id=id).values('id', 'contract', 'date', 'sales_data',
                                                               'total_amount', 'contract__rate_amount',
+                                                              'contract__contract_type__rate_type__rate_type',
                                                               'contract__contract_alias', 'contract__currency')
 
-    return render(request, "accounting/contract_sale/contract_sale_detail.html", {"contract_sale": contract_sale[0]})
+    return render(request, "accounting/contract_sale/contract_sale_detail.html",
+                  {"contract_sale": contract_sale[0]})
 
 
 @login_required(login_url="user:login")
@@ -359,9 +530,14 @@ def selected_contract_id(request):
 def add_contract_sale_invoice(request):
     form = ContractSaleInvoiceForm(request.POST or None, request.FILES or None)
 
+    referer = request.META.get('HTTP_REFERER')
+    if not referer:
+        return Http404
+
     if form.is_valid():
         print("adding a new contract sale invoice record...")
         contract_sale_invoice = form.save(commit=False)  # creates only the contract sale invoice object
+        contract_sale_invoice.user = request.user
         contract_sale_invoice.save()
 
         messages.success(request, "Successfully added a new contract sale invoice.")
@@ -374,7 +550,6 @@ def add_contract_sale_invoice(request):
         if invoice_data:
             invoice_data = json.loads(str(invoice_data))
             print(f"json invoice data: {invoice_data}")
-            print(f"json invoice data type: {type(invoice_data)}")
 
             context = {
                 "form": form,
@@ -403,10 +578,11 @@ def handle_uploaded_file(f):
 def contract_sale_invoices(request):
     keyword = request.GET.get("keyword")
     if keyword:
-        contracts_sales_invoices = ContractSalesInvoice.objects.filter(contract__contract_alias__contains=keyword). \
-            values('id', 'contract', 'sales_ids', 'invoice_number', 'date',
+        contracts_sales_invoices = ContractSalesInvoice.objects.filter(contract__contract_name__contains=keyword). \
+            values('id', 'sales_ids', 'invoice_number', 'date',
                    'due_date', 'is_paid_off',
                    'total_amount',
+                   'contract__contract_name',
                    'contract__contract_alias',
                    'contract__currency',
                    'contract__id')
@@ -414,10 +590,11 @@ def contract_sale_invoices(request):
                       {"cont_sales_invoices": contracts_sales_invoices})
 
     # all_contracts_sales = ContractSale.objects.all()
-    contracts_sales_invoices = ContractSalesInvoice.objects.all().values('id', 'contract', 'sales_ids',
+    contracts_sales_invoices = ContractSalesInvoice.objects.all().values('id', 'sales_ids',
                                                                          'invoice_number',
                                                                          'date', 'due_date', 'is_paid_off',
                                                                          'total_amount',
+                                                                         'contract__contract_name',
                                                                          'contract__contract_alias',
                                                                          'contract__currency',
                                                                          'contract__id')
@@ -471,7 +648,7 @@ def delete_cont_sale_invoice(request, id):
 @login_required(login_url="user:login")
 def set_invoice_data(request):
     sales_id = request.POST.get('sales_id')
-    print(f"salesid: {sales_id}")
+    print(f"received sales id: {sales_id}")
     if not sales_id:
         print("sales id not received!")
         return HttpResponse(500)
@@ -486,13 +663,14 @@ def set_invoice_data(request):
                                                                      'contract__currency',
                                                                      'total_amount') or None
         if not sales_data:
+            print(f"skipping contract id: {sid}...")
             continue
 
         sales_list.append(sales_data[0])
 
     print(f"sales dict: {sales_list}")
 
-    str_data = json.dumps(list(sales_list))
+    str_data = json.dumps(list(sales_list), cls=DecimalEncoder)
     print(f"str data: {str_data}")
 
     form = ContractSaleInvoiceForm(request.POST or None, request.FILES or None)
@@ -515,6 +693,7 @@ def add_contract_sales_transaction(request):
     if form.is_valid():
         print("adding a new contract sale transaction record...")
         contract_sale_transaction = form.save(commit=False)  # creates only the contract sale object
+        contract_sale_transaction.user = request.user
         contract_sale_transaction.save()
         messages.success(request, "Successfully added a new contract sale transaction.")
 
@@ -642,3 +821,126 @@ def delete_cont_sales_transaction(request, id):
     contract_sale_transaction.delete()
     messages.success(request, "Successfully deleted...")
     return redirect("accounting:cont_sales_transactions")
+
+
+@login_required(login_url="user:login")
+def add_milestone(request):
+    form = MileStoneForm(request.POST or None, request.FILES or None)
+    print("adding a new milestone record...")
+
+    if form.is_valid():
+        print("adding a new milestone record...")
+        milestone = form.save(commit=False)  # creates only the contract sale object
+        milestone.user = request.user
+        milestone.save()
+        messages.success(request, "Successfully added a new milestone.")
+
+        return redirect("accounting:milestones")
+    else:
+        print("form not valid!")
+
+        milestone_data = request.session.get('selected_contract_data') or None
+        if milestone_data:
+            jdata = json.loads(milestone_data)
+            print(f"data: {jdata}")
+
+            context = {
+                "form": form,
+                "milestone_data": jdata,
+            }
+        else:
+            context = {
+                "form": form,
+            }
+
+        return render(request, "accounting/milestone/add_milestone.html", context)
+
+
+@login_required(login_url="user:login")
+def milestones(request):
+    keyword = request.GET.get("keyword")
+    if keyword:
+        milestones_data = MileStone.objects.filter(contract__contract_alias__contains=keyword). \
+            values('id', 'contract', 'due_date', 'delivery_date', 'milestone_number',
+                   'is_completed', 'milestone_amount',
+                   'contract__contract_alias',
+                   'contract__currency',
+                   'contract__id')
+
+        return render(request, "accounting/milestone/milestones.html",
+                      {"milestone_list": milestones_data})
+
+    milestones_data = MileStone.objects.all(). \
+        values('id', 'contract', 'due_date', 'delivery_date', 'milestone_number',
+               'is_completed', 'milestone_amount',
+               'contract__contract_alias',
+               'contract__currency',
+               'contract__id')
+
+    context = {
+        "milestone_list": milestones_data,
+    }
+    # BelongsTo.objects.all().values('user', 'team__team_name', 'schedule')
+    return render(request, "accounting/milestone/milestones.html", context)
+
+
+@login_required(login_url="user:login")
+def update_milestone(request, id):
+    milestone = get_object_or_404(MileStone, id=id)
+    form = MileStoneForm(request.POST or None, request.FILES or None, instance=milestone)
+    if request.POST and form.is_valid:
+        milestone = form.save(commit=False)
+        milestone.save()
+        messages.success(request, "Milestone has been successfully updated.")
+        return redirect("accounting:milestones")
+
+    return render(request, "accounting/milestone/milestone_update.html", {"form": form})
+
+
+@login_required(login_url="user:login")
+def delete_milestone(request, id):
+    milestone = get_object_or_404(MileStone, id=id)
+    milestone.delete()
+    messages.success(request, "Successfully deleted...")
+    return redirect("accounting:milestones")
+
+
+@login_required(login_url="user:login")
+def set_milestone_data(request):
+    ms_id = request.POST.get('milestone_id')
+    print(f"received sales id: {ms_id}")
+    if not ms_id:
+        print("milestone id not received!")
+        return HttpResponse(500)
+
+    milestone_id = ast.literal_eval(ms_id)
+    print(f"new sales id: {milestone_id}")
+    milestone_list = []
+    for sid in milestone_id:
+        milestone_data = MileStone.objects.filter(id=int(sid)).\
+                             values('id', 'contract',
+                                    'due_date', 'delivery_date',
+                                    'milestone_number', 'is_completed',
+                                    'milestone_amount',
+                                    'total_amount') or None
+        if not milestone_data:
+            print(f"skipping contract id: {sid}...")
+            continue
+
+        milestone_list.append(milestone_data[0])
+
+    print(f"milestone dict: {milestone_list}")
+
+    str_data = json.dumps(list(milestone_list), cls=DecimalEncoder)
+    print(f"str data: {str_data}")
+
+    form = ContractSaleInvoiceForm(request.POST or None, request.FILES or None)
+
+    context = {
+        form: form,
+        "milestone_data": str_data,
+    }
+
+    request.session['selected_milestone_data'] = str_data
+
+    return HttpResponse(str_data)

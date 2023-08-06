@@ -24,7 +24,7 @@
             <b>End Date:</b> {{ contract_detail.end_date|safe }}
         </p>
         <p class="lead">
-            <b>Rate Type:</b> {{ contract_detail.rate_type|safe }}
+            <b>Rate Type:</b> {{ contract_detail.contract_type.rate_type.rate_type|safe }}
         </p>
         <p class="lead">
             <b>Rate Amount:</b> {{ contract_detail.rate_amount|safe }}
@@ -33,7 +33,10 @@
             <b>Currency:</b> {{ contract_detail.currency|safe }}
         </p>
         <p class="lead">
-            <b>Billing Period:</b> {{ contract_detail.billing_period|safe }}
+            <b>Billing Period:</b> {{ contract_detail.contract_type.rate_type.billing_period|safe }}
+        </p>
+        <p class="lead">
+            <b>Field Attributes:</b> {{ contract_detail.contract_type.field_attributes|safe }}
         </p>
         <p class="lead">
             <b>Description:</b> {{ contract_detail.description|safe }}

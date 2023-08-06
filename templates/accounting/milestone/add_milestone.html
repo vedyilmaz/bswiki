@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block body %}
+{% load crispy_forms_tags %}
+    <div class="row">
+        <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
+            <h3>Add Milestone - {{ milestone_data.id }}</h3>
+            <hr>
+            <form method = "POST">
+                {% csrf_token %}
+                {{form.media}}
+                {{form|crispy}}
+                <br>
+                <button type="submit" class="btn btn-primary">Add Milestone</button>
+            </form>
+
+        </div>
+    </div>
+
+<script>
+
+  let milestone_data = {};
+  document.addEventListener("DOMContentLoaded", function(event) {
+    milestone_data = {{ milestone_data|safe }};
+    if (milestone_data){
+        console.log("settings fields with the milestone data selected: " + milestone_data);
+        set_fields();
+    }else{
+        console.log("contract data not received!");
+    }
+  });
+
+  function set_fields(){
+    console.log("setting the fields..." + {{ milestone_data.id }} );
+    //var milestone_amount = {{ milestone_data.milestone_amount }};
+    $('#id_contract').val(milestone_data.id);
+
+    //if (milestone_amount){
+      //  console.log("milestone amount: " + milestone_amount);
+        //$('#id_milestone_amount').val(milestone_amount);
+   // }
+  }
+
+</script>
+
+{% endblock body %}

@@ -9,8 +9,8 @@
               <form>
                   <h3>Contract Sales</h3>
                   <p>&nbsp;</p>
-                  <a class="btn btn-info" href ="{% url 'accounting:add_contract_sale' %}">Add Contract Sale</a>
-                  <a class="btn btn-info text-gray disabled" id="id_btn_invoice" onclick="getSelectedSales('cbSales')">Make Invoice</a>
+<!--                  <a class="btn btn-info" href ="{% url 'accounting:add_contract_sale' %}">Add Contract Sale</a>-->
+                  <a class="btn btn-primary text-gray disabled" id="id_btn_invoice" onclick="getSelectedSales('cbSales')">Make Invoice</a>
 <!--                {% csrf_token %}-->
 <!--                <button class="btn btn-secondary" type="submit">Search</button>-->
           </div>
@@ -28,62 +28,186 @@
                 </form>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1" checked />
-            <label class="form-check-label" for="inlineCheckbox1">Hide invoiced sales</label>
+            <input class="form-check-input" type="checkbox" id="cb-filter-data" value=0/>
+            <label class="form-check-label" for="cb-filter-data">Show all sales</label>
         </div>
 
 
 
     {% if not contract_sales %}
+
         <div class="alert alert-danger" style = "margin-top:20px;">There is no contract sale yet.</div>
-    </div>
+
     {% else %}
-        <table class="table table-hover" style="margin-top:20px;">
-            <thead>
-                <tr>
-                    <th scope="col">id</th>
-                    <th scope="col">Invoice</th>
-                    <th scope="col">Contract Alias</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Worked Hours</th>
-                    <th scope="col">Total Amount</th>
-                    <th scope="col">Rate Amount</th>
-                    <th scope="col">Currency</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cs in contract_sales  %}
+
+            <table class="table table-hover" id="data-table" style="margin-top:20px;">
+                <thead>
                     <tr>
-                        <th scope="row">{{ cs.id }}</th>
-                        {% if cs.is_invoiced %}
-<!--                        <td><input class="form-check-input radioSales" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}" disabled></td>-->
-                        <td><input class="form-check-input cbSales" type="checkbox"  style="vertical-align: middle; margin: 10px;" value="{{ cs.id }}" disabled/></td>
-                        {% else %}
-<!--                        <td><input class="form-check-input radioSales" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}"></td>-->
-                        <td><input class="form-check-input cbSales" type="checkbox" style="vertical-align: middle; margin: 10px;" value="{{ cs.id }}"/></td>
-                        {% endif %}
-                        <td><a href="{% url 'accounting:contract_sale_detail' cs.id %}">{{ cs.contract__contract_alias }}</a></td>
-                                    <!--/articles/article/{{ article.id }}-->
-                        <td>{{ cs.date }}</td>
-                        <td>{{ cs.worked_hours }}</td>
-<!--                        <td>{{ cs.worked_hours|mul:cs.contract__rate_amount }}</td>-->
-                        <td>{{ cs.total_amount }}</td>
-                        <td>{{ cs.contract__rate_amount }}</td>
-                        <td>{{ cs.contract__currency }}</td>
-                        <td><a href="{% url 'accounting:update_contract_sale' cs.id %}">Update</a></td>
-                        <td><a class="confirm-delete" href="{% url 'accounting:delete_contract_sale' cs.id %}">Delete</a></td>
+                        <th scope="col">id</th>
+                        <th scope="col">Invoice</th>
+                        <th scope="col">Contract Alias</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Total Amount</th>
+                        <th scope="col">Rate Amount</th>
+                        <th scope="col">Currency</th>
                     </tr>
-                {% endfor %}
+                </thead>
+                <tbody>
+                    <div id="updated-data-container">
+                    {% for cs in contract_sales  %}
+                        <tr>
+                            <th scope="row">{{ cs.id }}</th>
+                            {% if cs.is_invoiced %}
+    <!--                        <td><input class="form-check-input radioSales" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}" disabled></td>-->
+                            <td><input class="form-check-input cbSales" type="checkbox"  style="vertical-align: middle; margin: 10px;" value="{{ cs.id }}" disabled/></td>
+                            {% else %}
+    <!--                        <td><input class="form-check-input radioSales" style="vertical-align: middle; margin: 10px;" name="radio-payoff" type="radio" value="{{ cs.id }}"></td>-->
+                            <td><input class="form-check-input cbSales" type="checkbox" style="vertical-align: middle; margin: 10px;" value="{{ cs.id }}"/></td>
+                            {% endif %}
+                            <td><a href="{% url 'accounting:contractsale-detail' cs.id %}">{{ cs.contract.contract_alias }}</a></td>
+                                        <!--/articles/article/{{ article.id }}-->
+                            <td>{{ cs.date }}</td>
+                            <td>{{ cs.total_amount }}</td>
+                            <td>{{ cs.contract.rate_amount }}</td>
+                            <td>{{ cs.contract.currency }}</td>
+                            <td><a href="{% url 'accounting:update_contract_sale' cs.id %}">Update</a></td>
+                            <td><a class="confirm-delete" href="{% url 'accounting:delete_contract_sale' cs.id %}">Delete</a></td>
+                        </tr>
+                    {% endfor %}
+                    </div>
+                </tbody>
+                </div>
+            </table>
+         </div>
 
-            </tbody>
-        </table>
 
-        <script>
+    <script>
 
-    const sales_ids = [];
+    let sales_ids = [];
+
     $(document).on('click', '.confirm-delete', function(){
         return confirm('Are you sure you want to delete this?');
     })
+
+    function setDataFilter() {
+        var is_filter = document.getElementById("cb-filter-data").value;
+        if (this.checked){
+            this.value = 1;
+        }else{
+            this.value = 0;
+        }
+
+        // send a ajax request to filter the data
+        console.log("is_filter: " + this.value);
+        filterData(this.value);
+    }
+
+    $(document).on('click', '#cb-filter-data', setDataFilter);
+
+    function filterData(filter_option){
+        console.log("setting invoice_data!");
+        const url = "{% url 'accounting:contractsales-list' %}";
+        var auth_headers = {
+            Authorization: 'Token ' + 'b83aec1ffbced8ffb02a7fd6f67870df4494933d',
+        }
+        console.log("url: " + url);
+        $.ajax({                       // initialize an AJAX request
+          url: url,                    // set the url of the request (= localhost:8000/accounting/set_invoice_data/)
+          method: "GET",
+          //dataType: "json",
+          //headers: auth_headers,
+          data: {
+            'is_all': filter_option,       // add the contract id to the GET parameters
+          },
+          success: function (data) {   // `data` is the return of the `load_contracts` view function
+            console.log("ola!");
+            console.log(data);
+            $('#data-table tbody').empty(); // delete rows
+            var data_table = document.getElementById('data-table');
+            var tbody = data_table.getElementsByTagName('tbody')[0];
+
+            // Populate the table with the received data
+            data.contract_sales.forEach(function(row) {
+                var newRow = tbody.insertRow(-1);
+                var id_col = newRow.insertCell(0);
+                id_col.innerHTML = row.id;
+
+                var cb = document.createElement('input');
+                addClass(cb, "form-check-input");
+                addClass(cb, "cbSales");
+                cb.type = "checkbox";
+                cb.value = row.id;
+                cb.onclick=cb_test;
+                cb.style = "vertical-align: middle; margin: 10px;";
+                if (row.is_invoiced == 1){
+                    cb.disabled = true;
+                }
+                var cb_invoice = newRow.insertCell(1);
+                cb_invoice.appendChild(cb);
+
+                var contract_link = document.createElement('a');
+                var url = "{% url 'accounting:contractsale-detail' 123 %}";
+                contract_link.href = url.replace('123', row.id);
+                contract_link.text = row.contract.contract_alias;
+
+                var contract = newRow.insertCell(2);
+                contract.appendChild(contract_link);
+
+                var cdate = newRow.insertCell(3);
+                cdate.innerHTML = row.date;
+
+                var total = newRow.insertCell(4);
+                total.innerHTML = row.total_amount;
+
+                var rate = newRow.insertCell(5);
+                rate.innerHTML = row.contract.rate_amount;
+
+                var currency = newRow.insertCell(6);
+                currency.innerHTML = row.contract.currency;
+
+                // add update link
+                var update_link = document.createElement('a');
+                var update_url = "{% url 'accounting:update_contract_sale' 123 %}"
+                update_link.href = update_url.replace('123', row.id);
+                update_link.text = "Update";
+
+                var ulink = newRow.insertCell(7);
+                ulink.appendChild(update_link);
+
+                // add delete link
+                var url_delete = "{% url 'accounting:delete_contract_sale' 123 %}"
+                var delete_link = document.createElement('a');
+                delete_link.href = url_delete.replace('123', row.id);
+                delete_link.text = "Delete";
+                addClass(delete_link, "confirm-delete");
+
+                var dlink = newRow.insertCell(8);
+                dlink.appendChild(delete_link);
+
+            });
+            //window.location.href = "{% url 'accounting:contractsales-list' %}"
+          },
+            error: function(e)
+            {
+                console.log('Error status : ' + e.status + ', status text: ' + e.statusText);
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        filterData(0);
+    });
+
+    function removeRows() {
+      var table = document.getElementById("#data-table");
+      var rowCount = table.rows.length;
+      if (rowCount > 1){
+          // Start from the second row (index 1) to keep the header row intact
+          for (var i = rowCount - 1; i > 0; i--) {
+            table.deleteRow(i);
+          }
+      }
+    }
 
     function getElement(elm){
         return document.getElementById(elm);
@@ -105,32 +229,89 @@
         }
     }
 
-    var matches = document.querySelectorAll('.radioSales');
-    for (match in matches) {
-      matches[match].onclick = function() {
-        sales_ids.push($(this).val());
-        console.log("sales id set!");
-        console.log("sales ids: " + sales_ids);
-        //console.log("data type: " + typeof(sales_ids));
-        var btn_invoice = getElement('id_btn_invoice');
-        removeClass(id_btn_invoice, "disabled");
-        removeClass(id_btn_invoice, "text-gray");
-        addClass(id_btn_invoice, "text-white");
-      }
+
+
+    function uncheckCheckboxes(className) {
+        const checkboxes = document.querySelectorAll(`.${className}`);
+        checkboxes.forEach((checkbox) => {
+          checkbox.checked = false;
+        });
     }
+
+  // Attach the event listener to the 'beforeunload' event
+  window.onbeforeunload = function () {
+    // Here, you can call the function to uncheck the checkboxes with the desired class name
+    uncheckCheckboxes("cbSales");
+  };
+
+
+    function cb_test() {
+        if (this.checked){
+            console.log("checked!");
+            sales_ids.push(this.value);
+        }else{
+            console.log("unchecked!");
+            remove_from_array(sales_ids, this.value);
+        }
+        console.log("sales ids: " + sales_ids);
+        if (sales_ids.length == 0){
+            disable_btn();
+        }else{
+            enable_btn();
+        }
+      }
 
     var matches = document.querySelectorAll('.cbSales');
     for (match in matches) {
       matches[match].onclick = function() {
-        sales_ids.push(this.value);
-        console.log("sales id set!");
+        if (this.checked){
+            console.log("checked!");
+            sales_ids.push(this.value);
+        }else{
+            console.log("unchecked!");
+            remove_from_array(sales_ids, this.value);
+        }
         console.log("sales ids: " + sales_ids);
-        //console.log("data type: " + typeof(sales_ids));
-        var btn_invoice = getElement('id_btn_invoice');
-        removeClass(id_btn_invoice, "disabled");
-        removeClass(id_btn_invoice, "text-gray");
-        addClass(id_btn_invoice, "text-white");
+        if (sales_ids.length == 0){
+            disable_btn();
+        }else{
+            enable_btn();
+        }
       }
+    }
+
+    function remove_from_array(arr, record){
+        const index = arr.indexOf(record);
+        if (index > -1) { // only splice array when item is found
+            arr.splice(index, 1); // 2nd parameter means remove one item only
+            console.log("array: " + arr);
+        }
+    }
+
+    function has_unmatching_company(dict_data){
+        let company_list = [];
+        for (let i=0; i < dict_data.length; i++){
+            company_list.push(dict_data[i]['contract__customer__company'])
+        }
+        const company_set = new Set(company_list);
+        company_list = Array.from(company_set);
+        console.log("companies: " + company_list);
+        console.log("number of company: " + company_list.length);
+        console.log("allowed to proceed: " + (company_list.length === 1) );
+        return company_list.length == 1;
+    }
+
+    function is_multiple_contract_selected(dict_data){
+        let contract_list = [];
+        for (let i=0; i < dict_data.length; i++){
+            contract_list.push(dict_data[i]['contract__id'])
+        }
+        const contract_set = new Set(contract_list);
+        contract_list = Array.from(contract_set);
+        console.log("contracts: " + contract_list);
+        console.log("number of contracts: " + contract_list.length);
+        console.log("allowed to proceed: " + (contract_list.length === 1) );
+        return contract_list.length == 1;
     }
 
     function set_invoice_data(){
@@ -148,7 +329,15 @@
           },
           success: function (data) {   // `data` is the return of the `load_contracts` view function
             console.log(data);
-            window.location.href = "{% url 'accounting:add_cont_sale_invoice' %}"
+            // check if checked sales are of different contracts
+            console.log("data:" + JSON.stringify(data));
+            if (is_multiple_contract_selected(data)) {
+                sales_ids = []
+                window.location.href = "{% url 'accounting:add_cont_sale_invoice' %}"
+            }else{
+                alert("you cannot invoice for multiple customers at a time!");
+            }
+           //
     <!--        $("#id_rate_amount").html(data.rate_amount);-->
     <!--        $("#id_rate_amount").val(data.rate_amount);-->
           },
@@ -158,11 +347,11 @@
                 sales_ids = [];
             }
         });
-  }
+    }
     function getSelectedSales(cbClassName) {
       var checkboxes = document.getElementsByClassName(cbClassName);
       var checkboxesChecked = [];
-      for (var i=0; i<checkboxes.length; i++) {
+      for (var i=0; i < checkboxes.length; i++) {
          if (checkboxes[i].checked) {
             checkboxesChecked.push(checkboxes[i].value);
          }
@@ -173,7 +362,20 @@
       return checkboxesChecked.length > 0 ? checkboxesChecked : null;
     }
 
+    function enable_btn(){
+        var btn_invoice = getElement('id_btn_invoice');
+        removeClass(id_btn_invoice, "disabled");
+        removeClass(id_btn_invoice, "text-gray");
+        addClass(id_btn_invoice, "text-white");
+    }
+
+    function disable_btn(){
+        var btn_invoice = getElement('id_btn_invoice');
+        addClass(id_btn_invoice, "disabled");
+        addClass(id_btn_invoice, "text-gray");
+        removeClass(id_btn_invoice, "text-white");
+    }
+
     </script>
-        
     {% endif %}
-{% endblock body %}
+    {% endblock body %}

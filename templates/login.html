@@ -1,18 +1,17 @@
 {% extends "layout.html" %}
 {% block body %}
 {% load crispy_forms_tags %}
-<div class="row">
-  <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
+
+<div class="container-fluid">
+  <div class="col-md-6 offset-md-3 bg-light text-dark" style = "margin-top:20px;">
     <h3>User Login</h3>
     <hr>
-    
     <form method = "POST">
         {% csrf_token %}
         {{form|crispy}}
         <br>
         <button type="submit" class="btn btn-primary">Login</button>
     </form>
-
   </div>
 </div>
     

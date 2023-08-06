@@ -3,49 +3,69 @@
 {% load crispy_forms_tags %}
 
 
-    <div class="row">
-    <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
-        <h3>Add Contract Sale - {{ contract_data.contract_alias }}</h3>
-        <hr>
-<!--        <form method = "POST">-->
-        <form method="POST" id="contractSaleForm" data-contract-url="{% url 'accounting:ajax_load_contract' %}" novalidate>
-            {% csrf_token %}
-            {{form.media}}
-            {{form|crispy}}
-            <br>
-            <button type="submit" class="btn btn-primary">Add Contract Sale</button>
-        </form>
-    </div>
+    <div class="container-fluid">
+        <div class="col-md-6 offset-md-3" style = "margin-top:20px;">
+            <h4>Add Contract Sale</h4>
+            <hr>
+    <!--        <form method = "POST">-->
+            <form method="POST" id="contractSaleForm" data-contract-url="{% url 'accounting:ajax_load_contract' %}" novalidate>
+                {% csrf_token %}
+
+                {% if contract_data.contract_type__field_attributes %}
+                    {% for key,value in contract_data.contract_type__field_attributes.items %}
+                        <label for="id_{{field}}" class="">
+                            {{key}}
+                        </label>
+                        <input type="{{value}}" name={{key}} step="any" class="textinput form-control sales-data" id="id_{{key}}">
+                    {% endfor %}
+                {% endif %}
+                {{form.media}}
+                {{form|crispy}}
+                <br>
+                <button type="submit" class="btn btn-primary">Add Contract Sale</button>
+            </form>
+        </div>
     </div>
 
   <script>
   let contract_data = {};
+  let jdata = {};
 
   document.addEventListener("DOMContentLoaded", function(event) {
     contract_data = {{ contract_data|safe }};
     if (contract_data){
         console.log("settings fields with the contract data selected: " + contract_data);
+        $('#id_contract').val({{ contract_data.id }});
         set_fields();
     }else{
         console.log("contract data not received!");
     }
   });
 
+  var matches = document.querySelectorAll('.sales-data');
+    for (match in matches) {
+      matches[match].onchange = function() {
+        console.log("element name: " + this.getAttribute("value"));
 
-  function set_fields(){
-    console.log("setting the fields...");
-    var rate_amount = {{ contract_data.rate_amount }};
-    var worked_hours = document.getElementById("id_worked_hours").value;
-    $('#id_contract').val({{ contract_data.id }});
-    $('#id_rate_amount').val({{contract_data.rate_amount}});
-
-    if (rate_amount && worked_hours){
-        console.log("rate amount : " + rate_amount);
-        console.log("worked hours: " + worked_hours);
-        var total_amount = (rate_amount * worked_hours);
-        console.log("total amount: " + total_amount);
-        $('#id_total_amount').val(total_amount);
+        //contract_id = this.value;
+        // project_type = this.name;
+        //console.log("contract id set!");
+        //var btn_add_sales = getElement('id_btn_add_sales');
+        //enable_button(btn_add_sales);
+        set_fields(this);
+      }
     }
+
+  function set_fields(el){
+    console.log("setting the json string...");
+    var key = el.getAttribute('name');
+    var value = el.value;
+    jdata[key] = value;
+    console.log("jdata: " + JSON.stringify(jdata));
+    $('#id_sales_data').val(JSON.stringify(jdata));
+    //var worked_hours = document.getElementById("id_worked_hours").value;
+    //$('#id_contract').val({{ contract_data.id }});
+
   }
 
   window.addEventListener("DOMContentLoaded", (event) => {

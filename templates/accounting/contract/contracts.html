@@ -10,6 +10,7 @@
                   <p>&nbsp;</p>
                   <a class="btn btn-primary" href ="{% url 'accounting:add_contract' %}">Add Contract</a>
                   <a class="btn btn-primary disabled" id="id_btn_add_sales" onclick="set_sales_data()" >Add Contract Sales</a>
+
           </div>
               </form>
         </div>
@@ -48,14 +49,14 @@
                 {% for contract in contracts  %}
                     <tr>
                         <th scope="row">{{ contract.id }}</th>
-                        <td><input class="form-check-input radioContract" style="vertical-align: middle; margin: 10px;" name="radio-contract" type="radio" value="{{ contract.id }}"></td>
+                        <td><input class="form-check-input radioContract" style="vertical-align: middle; margin: 10px;" name="radio-sales" type="radio" value="{{ contract.id }}"></td>
                         <td><a href="{% url 'accounting:contract_detail' contract.id %}">{{ contract.contract_alias }}</a></td>
                         <td>{{ contract.customer }}</td>
                         <td>{{ contract.start_date }}</td>
-                        <td>{{ contract.rate_type }}</td>
+                        <td>{{ contract.contract_type.rate_type.rate_type}}</td>
                         <td>{{ contract.rate_amount | intcomma }}</td>
                         <td>{{ contract.currency }}</td>
-                        <td>{{ contract.billing_period }}</td>
+                        <td>{{ contract.contract_type.rate_type.billing_period.billing_period }}</td>
                         <td>{{ contract.is_active }}</td>
                         <td><a href="{% url 'accounting:update_contract' contract.id %}">Update</a></td>
                                     <!--/articles/update/{{ article.id }}-->
@@ -67,7 +68,8 @@
         </table>
 
     <script>
-    let contract_id = 0
+    let contract_id = 0;
+    let project_type = "";
 
     function getElement(elm){
         return document.getElementById(elm);
@@ -93,12 +95,45 @@
     for (match in matches) {
       matches[match].onclick = function() {
         contract_id = this.value;
+        // project_type = this.name;
         console.log("contract id set!");
         var btn_add_sales = getElement('id_btn_add_sales');
-        removeClass(btn_add_sales, "disabled");
-        removeClass(btn_add_sales, "text-gray");
-        addClass(btn_add_sales, "text-white");
+        enable_button(btn_add_sales);
+        //set_button_title("test");
       }
+    }
+
+    // Attach the event listener to the 'beforeunload' event
+  window.onbeforeunload = function () {
+    // Here, you can call the function to uncheck the checkboxes with the desired class name
+    uncheckRadio("radioContract");
+  };
+
+    function uncheckRadio(className) {
+        const radios = document.querySelectorAll(`.${className}`);
+        radios.forEach((radio) => {
+          radio.checked = false;
+        });
+    }
+
+    function enable_button(el){
+        removeClass(el, "disabled");
+        removeClass(el, "text-gray");
+        addClass(el, "text-white");
+    }
+
+    function disable_button(el){
+        removeClass(el, "text-white");
+        addClass(el, "text-gray");
+        addClass(el, "disabled");
+    }
+
+    function set_button_title(mtitle){
+     // get the selected contract data
+     // set the button title accordingly
+     // redirect to the relevant page
+     console.log("setting the button title...");
+     // $("#id_btn_add_sales").text(mtitle);
     }
 
     function set_sales_data(){
@@ -116,8 +151,17 @@
                 'contract_id': contract_id,       // add the contract id to the GET parameters
               },
               success: function (data) {   // `data` is the return of the `load_contracts` view function
-                console.log(data.id);
-                window.location.href = "{% url 'accounting:add_contract_sale' %}"
+                console.log(data);
+                console.log("rate: " + (data.contract_type__rate_type__rate_type).toLowerCase().includes('hour'))
+                if ((data.contract_type__rate_type__rate_type).toLowerCase().includes('hour')){
+                    window.location.href = "{% url 'accounting:add_contract_sale' %}"
+                    console.log("ok");
+                }else {
+                    //window.location.href = "{% url 'accounting:add_milestone' %}"
+                    window.location.href = "{% url 'accounting:add_contract_sale' %}"
+                    console.log("nope");
+                }
+               // window.location.href = "{% url 'accounting:add_contract_sale' %}"
         <!--        $("#id_rate_amount").html(data.rate_amount);-->
         <!--        $("#id_rate_amount").val(data.rate_amount);-->
               },

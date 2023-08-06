@@ -13,3 +13,5 @@ urlpatterns = [
     # path('', views.articles, name='articles'),
     path('comment/<int:id>', views.addComment, name='comment')
 ]
+
+

@@ -1,5 +1,6 @@
 from django.forms import ModelForm, SelectDateWidget, ClearableFileInput, models
-from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice, ContractSalesTransaction
+from .models import Customer, BankAccount, Contract, ContractSale, ContractSalesInvoice, \
+    ContractSalesTransaction, MileStone, ContractType
 from .widgets import DatePickerInput, TimePickerInput, DateTimePickerInput
 from django import forms
 from .widgets import DatePickerInput, TimePickerInput, DateTimePickerInput, CheckBoxInput, RadioSelectInput
@@ -36,25 +37,28 @@ class ContractForm(ModelForm):
 
         BILLING_PERIODS = [("weekly", "Weekly"), ("monthly", "Monthly"), ("milestone", "Milestone")]
 
-        fields = ['customer', 'contract_alias', 'start_date', 'end_date', 'rate_type', 'rate_amount', 'currency',
-                  'billing_period', 'is_active', 'description']
+        fields = ['customer', 'contract_name', 'contract_alias', 'contract_type', 'start_date', 'end_date',
+                  'rate_amount', 'currency', 'is_active', 'note']
+
+        CURRENCIES = [("usd", "USD"), ("gbp", "GBP"), ("euro", "EURO")]
 
         widgets = {
             'start_date': DatePickerInput(),
             'end_date': DatePickerInput(),
             'is_active': CheckBoxInput(),
-            'rate_type': RadioSelectInput(choices=RATE_TYPES),
-            'billing_period': RadioSelectInput(choices=BILLING_PERIODS)
+            # 'rate_type': RadioSelectInput(choices=RATE_TYPES),
+            # 'billing_period': RadioSelectInput(choices=BILLING_PERIODS)
+            'currency': RadioSelectInput(choices=CURRENCIES),
         }
 
 
 class ContractSaleForm(ModelForm):
-    rate_amount = forms.DecimalField(disabled=False, required=False)
+    #rate_amount = forms.DecimalField(disabled=False, required=False)
 
     class Meta:
         model = ContractSale
 
-        fields = ['contract', 'date', 'worked_hours', 'rate_amount', 'total_amount', 'is_invoiced', 'note']
+        fields = ['contract', 'date', 'sales_data', 'total_amount', 'is_invoiced', 'note']
 
         widgets = {
             'date': DatePickerInput(),
@@ -84,10 +88,10 @@ class ContractSaleForm(ModelForm):
     #     else:
     #         print("empty data!")
 
-
     def __init__(self, *args, **kwargs):
         super(ContractSaleForm, self).__init__(*args, **kwargs)
         self.fields['contract'].widget.attrs['hidden'] = True
+        self.fields['sales_data'].widget.attrs['hidden'] = True
 
 
 class ContractSaleInvoiceForm(ModelForm):
@@ -95,7 +99,7 @@ class ContractSaleInvoiceForm(ModelForm):
     class Meta:
         model = ContractSalesInvoice
 
-        fields = ['contract', 'sales_ids', 'invoice_number', 'date', 'due_date', 'is_paid_off', 'invoice_file',
+        fields = ['sales_ids', 'contract', 'invoice_number', 'date', 'due_date', 'is_paid_off', 'invoice_file',
                   'total_amount', 'note']
 
         widgets = {
@@ -103,6 +107,10 @@ class ContractSaleInvoiceForm(ModelForm):
             'due_date': DatePickerInput(),
             'is_paid_off': CheckBoxInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ContractSaleInvoiceForm, self).__init__(*args, **kwargs)
+        self.fields['contract'].widget.attrs['hidden'] = True
 
 
 class ContractSaleTransactForm(ModelForm):
@@ -115,3 +123,30 @@ class ContractSaleTransactForm(ModelForm):
         widgets = {
             'date': DatePickerInput(),
         }
+
+
+class MileStoneForm(ModelForm):
+
+    class Meta:
+        model = MileStone
+
+        fields = ['contract', 'due_date', 'delivery_date', 'milestone_number',
+                  'is_completed', 'milestone_amount', 'note']
+
+        widgets = {
+            'due_date': DatePickerInput(),
+            'delivery_date': DatePickerInput(),
+            'is_completed': CheckBoxInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(MileStoneForm, self).__init__(*args, **kwargs)
+        self.fields['contract'].widget.attrs['hidden'] = True
+
+
+class ContractTypeForm(ModelForm):
+
+    class Meta:
+        model = ContractType
+
+        fields = ['contract_type', 'rate_type', 'field_attributes', 'note']

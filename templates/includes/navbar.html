@@ -4,7 +4,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-          <a class="navbar-brand" href="{% url 'index' %}">BS Base</a>
+          <a class="navbar-brand" href="{% url 'index' %}">TS Base</a>
           <ul class="navbar-nav mr-auto">
 
             <li class="nav-item">
@@ -17,15 +17,13 @@
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                   <a class="dropdown-item" href="{% url 'accounting:customers' %}">Customers</a>
-                  <a class="dropdown-item" href="{% url 'accounting:contracts' %}">Contracts</a>
                   <a class="dropdown-item" href="{% url 'accounting:bank_accounts' %}">Bank Accounts</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="{% url 'accounting:contract_sales' %}">Contract Sales - By Hour</a>
-                  <a class="dropdown-item" href="{% url 'accounting:cont_sale_invoices' %}">Contract Sales Invoices</a>
-                  <a class="dropdown-item" href="{% url 'accounting:cont_sales_transactions' %}">Contract Sales Transactions</a>
 
-                    <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="{% url 'accounting:contract_sales' %}">Contract Sales - By Milestone</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{% url 'accounting:contracts' %}">1. Contracts</a>
+                  <a class="dropdown-item" href="{% url 'accounting:contract_sales' %}">2. Contract Sales</a>
+                  <a class="dropdown-item" href="{% url 'accounting:cont_sale_invoices' %}">3. Contract Sales Invoices</a>
+                  <a class="dropdown-item" href="{% url 'accounting:cont_sales_transactions' %}">4. Contract Sales Transactions</a>
 
                 </div>
             </li>

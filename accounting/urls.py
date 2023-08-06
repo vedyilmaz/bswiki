@@ -1,8 +1,12 @@
 from django.contrib import admin
-from django.urls import path
+from django.db import router
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+
 
 app_name = "accounting"
 
@@ -29,6 +33,9 @@ urlpatterns = [
     path('update_contract/<int:id>', views.update_contract, name='update_contract'),
     path('delete_contract/<int:contract_id>', views.delete_contract, name='delete_contract'),
 
+    path('contracts', views.contract_list, name='contract-list'),
+    path('contract/<int:id>', views.contractdetail, name='contract-detail'),
+
     # contract sales
     path('contract_sales', views.contract_sales, name='contract_sales'),
     path('add_contract_sale', views.add_contract_sale, name='add_contract_sale'),
@@ -36,6 +43,9 @@ urlpatterns = [
     path('load_contract', views.load_contract, name='ajax_load_contract'),
     path('update_contract_sale/<int:id>', views.update_contract_sale, name='update_contract_sale'),
     path('delete_contract_sale/<int:id>', views.delete_contract_sale, name='delete_contract_sale'),
+
+    path('contractsales_api', views.contractsale_list, name='contractsales-list'),
+    path('contractsales_api/<int:id>', views.contractsale_detail, name='contractsale-detail'),
 
     # contract sales invoice
     path('cont_sale_invoices', views.contract_sale_invoices, name='cont_sale_invoices'),
@@ -53,8 +63,15 @@ urlpatterns = [
     path('update_cont_sales_transaction/<int:id>', views.update_cont_sales_transaction, name='update_cont_sales_transaction'),
     path('delete_cont_sales_transaction/<int:id>', views.delete_cont_sales_transaction, name='delete_cont_sales_transaction'),
 
-
+    # milestones
+    path('milestones', views.milestones, name='milestones'),
+    path('add_milestone', views.add_milestone, name='add_milestone'),
+    # path('milestone_detail/<int:id>', views.milestone_detail, name='milestone_detail'),
+    path('update_milestone/<int:id>', views.update_milestone, name='milestone_update'),
+    path('delete_milestone/<int:id>', views.delete_milestone, name='delete_milestone'),
+    path('set_milestone_data', views.set_milestone_data, name='ajax_set_milestone_data'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

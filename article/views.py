@@ -126,3 +126,4 @@ def addComment(request, id):
         
     return redirect(reverse("article:detail", kwargs={"id": id}))
 #/articles/article/" + str(id)
+

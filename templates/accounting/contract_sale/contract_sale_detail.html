@@ -17,9 +17,11 @@
         <p class="lead">
             <b>Date:</b> {{ contract_sale.date|safe }}
         </p>
+        {% for key, value in contract_sale.sales_data.items %}
         <p class="lead">
-            <b>Worked Hours:</b> {{ contract_sale.worked_hours|safe }}
+            <b>{{key}}:</b> {{ value|safe }}
         </p>
+        {% endfor %}
         <p class="lead">
             <b>Rate Amount:</b> {{ contract_sale.contract__rate_amount|safe }}
         </p>
@@ -29,6 +31,7 @@
         <p class="lead">
             <b>Currency:</b> {{ contract_sale.contract__currency|safe }}
         </p>
+
         <p class="lead">
             <b>Note:</b> {{ contract_sale.note|safe }}
         </p>

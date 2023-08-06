@@ -9,6 +9,7 @@ import django.db.models.options as options
 from datetime import date
 from django.utils.timezone import now
 from django.core.files.storage import FileSystemStorage
+from rest_framework import serializers
 
 options.DEFAULT_NAMES = options.DEFAULT_NAMES + (
     'es_index_name', 'es_type_name', 'es_mapping'
@@ -28,6 +29,7 @@ class Customer(models.Model):
     responsible = models.CharField(max_length=150, blank=True, null=True)
     created_date = models.DateTimeField(auto_now_add=True)
     company_logo = models.FileField(upload_to='logos/', blank=True, null=True, verbose_name="Add the company logo")
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -57,6 +59,7 @@ class BankAccount(models.Model):
     sort_code = models.CharField(max_length=150)
     account_owner = models.CharField(max_length=150)
     currency = models.CharField(verbose_name="currency",  max_length=15)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
     note = models.TextField(blank=True)
 
     def __str__(self):
@@ -82,16 +85,18 @@ class BankAccount(models.Model):
 
 @cleanup.ignore
 class Contract(models.Model):
-    contract_alias = models.CharField(max_length=150, unique=True)
+    contract_name = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    contract_alias = models.CharField(max_length=100, unique=True)
     customer = models.ForeignKey("accounting.Customer", on_delete=models.CASCADE)
     start_date = models.DateField(help_text='contract start date')
     end_date = models.DateField(help_text='contract end date', blank=True, null=True)
-    rate_type = models.CharField(max_length=150)        # hourly, daily, weekly, monthly
-    rate_amount = models.FloatField()
+    contract_type = models.ForeignKey("accounting.ContractType", on_delete=models.CASCADE, default=None)
+    rate_amount = models.DecimalField(decimal_places=2, max_digits=12)
     currency = models.CharField(max_length=150)         # USD, GBP, etc
-    billing_period = models.CharField(max_length=15)    # weekly, monthly
+    # billing_period = models.CharField(max_length=15)    # weekly, monthly
     is_active = models.BooleanField(default=True)
-    description = models.TextField(blank=True)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
+    note = models.TextField(blank=True)
 
     def __str__(self):
         return self.contract_alias
@@ -105,10 +110,10 @@ class Contract(models.Model):
                 'contract_alias': {'type': 'string', 'index': 'not_analyzed'},
                 'start_date': {'type': 'date', 'index': 'not_analyzed'},
                 'due_date': {'type': 'date', 'index': 'not_analyzed'},
-                'rate_type': {'type': 'string', 'index': 'not_analyzed'},
+                'rate_type': {'type': 'int', 'index': 'not_analyzed'},
                 'rate_amount': {'type': 'float', 'index': 'not_analyzed'},
                 'currency': {'type': 'string', 'index': 'not_analyzed'},
-                'billing_period': {'type': 'string', 'index': 'not_analyzed'},
+                # 'billing_period': {'type': 'string', 'index': 'not_analyzed'},
                 'is_active': {'type': 'boolean', 'index': 'not_analyzed'},
                 'description': {'type': 'string', 'index': 'not_analyzed'}
             }
@@ -119,9 +124,11 @@ class Contract(models.Model):
 class ContractSale(models.Model):
     contract = models.ForeignKey("accounting.Contract", on_delete=models.CASCADE)
     date = models.DateField(help_text='date', default=django.utils.timezone.now)
-    worked_hours = models.FloatField()
+    # worked_hours = models.FloatField()
+    sales_data = models.JSONField(default=dict)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     is_invoiced = models.BooleanField(default=False)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
     note = models.TextField(blank=True)
 
     # implement calculated field
@@ -140,8 +147,6 @@ class ContractSale(models.Model):
     def __str__(self):
         return self.contract.contract_alias
 
-
-
     class Meta:
         ordering = ['-date']
         # es_index_name = 'django'
@@ -159,13 +164,13 @@ class ContractSale(models.Model):
 @cleanup.ignore
 class MileStone(models.Model):
     contract = models.ForeignKey("accounting.Contract", on_delete=models.SET_DEFAULT, default=None)
-    due_date = models.DateField(help_text='milestone due date')
-    delivery_date = models.DateField(help_text='date of delivery')
+    due_date = models.DateField(help_text='milestone due date', default=now() + datetime.timedelta(days=7))
+    delivery_date = models.DateField(help_text='date of delivery', default=now() + datetime.timedelta(days=14))
     milestone_number = models.IntegerField()
     is_completed = models.BooleanField(default=False)
     milestone_amount = models.DecimalField(decimal_places=2, max_digits=6)
-    user = models.ForeignKey("auth.User", on_delete=models.CASCADE)
-    description = models.TextField(blank=True)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, blank=True, null=True)
+    note = models.TextField(blank=True)
 
     def __str__(self):
         return self.contract.contract_alias
@@ -190,7 +195,7 @@ class MileStone(models.Model):
 @cleanup.ignore
 class ContractSalesInvoice(models.Model):
     # sales = models.ForeignKey("accounting.ContractSale", on_delete=models.CASCADE, unique=True)
-    contract = models.ForeignKey("Contract", on_delete=models.CASCADE, default=1)
+    contract = models.ForeignKey("Contract", on_delete=models.CASCADE, null=True, blank=True, default=None)
     sales_ids = models.CharField(max_length=100, verbose_name="sales_ids")
     invoice_number = models.CharField(max_length=100)
     date = models.DateField(help_text='invoice date', default= django.utils.timezone.now)
@@ -198,6 +203,7 @@ class ContractSalesInvoice(models.Model):
     total_amount = models.DecimalField(verbose_name="total_amount", decimal_places=2, max_digits=12, default=0)
     is_paid_off = models.BooleanField(default=False)
     invoice_file = models.FileField(upload_to='invoices/%Y-%b', blank=True, null=True, verbose_name="Add an invoice file")
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
     note = models.TextField(blank=True)
 
     def __str__(self):
@@ -209,10 +215,11 @@ class ContractSalesInvoice(models.Model):
 
 @cleanup.ignore
 class ContractSalesTransaction(models.Model):
-    invoice = models.ForeignKey("accounting.ContractSalesInvoice", on_delete=models.CASCADE, unique=True)
+    invoice = models.ForeignKey("accounting.ContractSalesInvoice", on_delete=models.CASCADE)
     date = models.DateField(help_text='invoice date', default=django.utils.timezone.now)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     bank_account = models.ForeignKey("accounting.BankAccount", on_delete=models.CASCADE)
+    user = models.ForeignKey("auth.User", on_delete=models.CASCADE, default=None, null=True)
     note = models.TextField(blank=True)
 
     def __str__(self):
@@ -220,3 +227,33 @@ class ContractSalesTransaction(models.Model):
 
     class Meta:
         ordering = ['-date']
+
+
+@cleanup.ignore
+class RateType(models.Model):
+    rate_type = models.CharField(max_length=100, verbose_name="Rate Type")
+    billing_period = models.ForeignKey("accounting.BillingPeriod", on_delete=models.CASCADE)
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.rate_type}-{self.billing_period}"
+
+
+@cleanup.ignore
+class BillingPeriod(models.Model):
+    billing_period = models.CharField(max_length=100, verbose_name="Billing period")
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.billing_period
+
+
+@cleanup.ignore
+class ContractType(models.Model):
+    contract_type = models.CharField(max_length=100, verbose_name="Contract Type")
+    rate_type = models.ForeignKey("accounting.RateType", on_delete=models.CASCADE)
+    field_attributes = models.JSONField(null=True)
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.contract_type}-{self.rate_type}"
